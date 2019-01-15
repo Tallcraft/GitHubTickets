@@ -23,7 +23,7 @@ public class GitHubController {
     private Repository repository;
 
 
-    public void connect(String user, String password, String repositoryName) throws IOException {
+    public void connect(String user, String password, String repositoryUser, String repositoryName) throws IOException {
         // Initialize GitHubController client
         this.client = new GitHubClient();
         this.client.setCredentials(user, password);
@@ -36,7 +36,7 @@ public class GitHubController {
 
         // Search for ticket repository
         // TODO: support other repos, not only owned
-        this.repository = this.repService.getRepository(user, repositoryName);
+        this.repository = this.repService.getRepository(repositoryUser, repositoryName);
     }
 
     public long createIssue(Ticket ticket) throws IOException {

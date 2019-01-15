@@ -1,60 +1,93 @@
 package com.tallcraft.githubtickets;
 
-//import org.bukkit.plugin.java.JavaPlugin;
-
 import com.tallcraft.githubtickets.github.GitHubController;
 import com.tallcraft.githubtickets.ticket.TicketController;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.UUID;
+//import java.util.ArrayList;
+//import java.util.Date;
+//import java.util.UUID;
 import java.util.logging.Logger;
 
-public final class GithubTickets/* extends JavaPlugin*/ {
-//    private final Logger logger = Logger.getLogger(this.getName());
+public final class GithubTickets extends JavaPlugin {
+    private final Logger logger = Logger.getLogger(this.getName());
 
     private static final GitHubController gitHubController = GitHubController.getInstance();
-    private static final TicketController ticketController = TicketController.getInstance();
-
-    // FIXME
-    private static final String user = "";
-    private static final String password = "";
-    private static final String repositoryName = "ticket-test";
+//    private static final TicketController ticketController = TicketController.getInstance();
 
 
-    public static void main(String[] args) {
+    private FileConfiguration config;
+
+
+//    // Test method
+//    public static void main(String[] args) {
+//
+//
+//        try {
+//            gitHubController.connect(user, password, ,repositoryName);
+//
+//            // Test ticket creation
+//            ticketController.createTicket(new Date(), UUID.randomUUID(), "Tallcraft", "Survival", "survival2", "Help, I've been griefed");
+//        } catch(IOException ex) {
+//            ex.printStackTrace();
+//        }
+//    }
+
+
+    @Override
+    public void onEnable() {
+        // Initialize with defaults
+        initConfig();
+
+        // Read config values
+        String user = config.getString("github.auth.username");
+        String password = config.getString("github.auth.password");
+        String repositoryUser = config.getString("github.repository.user");
+        String repositoryName = config.getString("github.repository.repoName");
 
         try {
-            gitHubController.connect(user, password, repositoryName);
-
-            // Test ticket creation
-            ticketController.createTicket(new Date(), UUID.randomUUID(), "Tallcraft", "Survival", "survival2", "Help, I've been griefed");
+            // Connect to github repo
+            gitHubController.connect(user, password, repositoryUser, repositoryName);
         } catch(IOException ex) {
+            logger.info("Error while connecting to GitHub");
             ex.printStackTrace();
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
         }
+        // Initialize and register commands
+        TicketCommand ticketCommand = new TicketCommand();
+        this.getCommand("ticket").setExecutor(ticketCommand);
     }
 
+    @Override
+    public void onDisable() {
+        // Plugin shutdown logic
+    }
 
-//    @Override
-//    public void onEnable() {
-//        try {
-//            this.gitHubController = new GitHubController();
-//        } catch(IOException ex) {
-//            logger.info("Could not initialize GitHubController connection");
-//            ex.printStackTrace();
-//            this.onDisable(); // Disable plugin
-//        }
-//
-//        TicketCommand ticketCommand = new TicketCommand(gitHubController);
-//        this.getCommand("ticket").setExecutor(ticketCommand);
-//
-//
-//        // Plugin startup logic
-//
-//    }
+    private void initConfig() {
+        config = this.getConfig();
 
-//    @Override
-//    public void onDisable() {
-//        // Plugin shutdown logic
-//    }
+        MemoryConfiguration defaultConfig = new MemoryConfiguration();
+
+        ConfigurationSection github = defaultConfig.createSection("github");
+        ConfigurationSection githubAuth = github.createSection("auth");
+        ConfigurationSection githubRepo = github.createSection("repository");
+
+        githubAuth.set("username", "");
+        githubAuth.set("password", "");
+
+        githubRepo.set("user", "");
+        githubRepo.set("repoName", "");
+
+
+        config.setDefaults(defaultConfig);
+        config.options().copyDefaults(true);
+        saveConfig();
+    }
 }
