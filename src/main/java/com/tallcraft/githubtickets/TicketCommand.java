@@ -1,0 +1,44 @@
+package com.tallcraft.githubtickets;
+
+import com.tallcraft.githubtickets.ticket.TicketController;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.io.IOException;
+import java.util.Date;
+
+public class TicketCommand implements CommandExecutor {
+
+    private static final TicketController ticketController = TicketController.getInstance();
+
+
+    /**
+     * Executes the given command, returning its success.
+     * <br>
+     * If false is returned, then the "usage" plugin.yml entry for this command
+     * (if defined) will be sent to the player.
+     *
+     * @param sender  Source of the command
+     * @param command Command which was executed
+     * @param label   Alias of the command which was used
+     * @param args    Passed command arguments
+     * @return true if a valid command, otherwise false
+     */
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if(args.length <= 1) { // No body
+            return false;
+        }
+        String body = String.join(" ", args);
+        // TODO: catch console
+        try {
+            ticketController.createTicket((Player) sender, new Date(), body);
+        } catch (IOException e) {
+            sender.sendMessage("Error: Could not create ticket");
+            e.printStackTrace();
+        }
+        return false;
+    }
+}
