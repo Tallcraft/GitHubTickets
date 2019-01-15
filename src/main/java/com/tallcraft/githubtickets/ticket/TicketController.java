@@ -1,6 +1,7 @@
 package com.tallcraft.githubtickets.ticket;
 
 import com.tallcraft.githubtickets.github.GitHubController;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -20,12 +21,13 @@ public class TicketController {
     }
 
     public long createTicket(Player player, Date timestamp, String message) throws IOException {
-        Ticket ticket = new Ticket(timestamp, player.getUniqueId(), player.getName(), "todo", player.getWorld().getName(), message);
-        return githubControlller.createIssue(ticket);
+        org.bukkit.Location l = player.getLocation();
+        Location playerLocation = new Location(l.getX(), l.getY(), l.getZ());
+        return createTicket(timestamp, player.getUniqueId(), player.getName(), Bukkit.getServer().getName(), player.getWorld().getName(), playerLocation, message);
     }
 
-    public long createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, String body) throws IOException {
-        Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverName, worldName, body);
+    public long createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) throws IOException {
+        Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverName, worldName, location, body);
         return githubControlller.createIssue(ticket);
     }
 }

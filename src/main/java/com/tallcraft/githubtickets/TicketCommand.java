@@ -28,17 +28,27 @@ public class TicketCommand implements CommandExecutor {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(args.length <= 1) { // No body
+        if (args.length == 0) { // No body
             return false;
         }
-        String body = String.join(" ", args);
-        // TODO: catch console
+
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Console not supported");
+            return false;
+        }
+
+
+        String message = String.join(" ", args);
+
+        long ticketID;
         try {
-            ticketController.createTicket((Player) sender, new Date(), body);
+            ticketID = ticketController.createTicket((Player) sender, new Date(), message);
         } catch (IOException e) {
             sender.sendMessage("Error: Could not create ticket");
             e.printStackTrace();
+            return false;
         }
-        return false;
+        sender.sendMessage("Created ticket #" + ticketID);
+        return true;
     }
 }

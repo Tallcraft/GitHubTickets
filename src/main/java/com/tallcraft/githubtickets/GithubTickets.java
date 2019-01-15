@@ -1,19 +1,18 @@
 package com.tallcraft.githubtickets;
 
 import com.tallcraft.githubtickets.github.GitHubController;
-import com.tallcraft.githubtickets.ticket.TicketController;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.util.logging.Logger;
+
 //import java.util.ArrayList;
 //import java.util.Date;
 //import java.util.UUID;
-import java.util.logging.Logger;
 
 public final class GithubTickets extends JavaPlugin {
     private final Logger logger = Logger.getLogger(this.getName());
@@ -50,6 +49,8 @@ public final class GithubTickets extends JavaPlugin {
         String password = config.getString("github.auth.password");
         String repositoryUser = config.getString("github.repository.user");
         String repositoryName = config.getString("github.repository.repoName");
+
+        // TODO: disable plugin if config values are empty / invalid
 
         try {
             // Connect to github repo

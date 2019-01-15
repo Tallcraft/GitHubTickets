@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class Ticket {
 
-    private static int maxTitleLength = 20;
+    private static final int maxTitleLength = 50;
 
     // Meta
     private Date timestamp;
@@ -14,17 +14,19 @@ public class Ticket {
     private String playerName;
     private String serverName;
     private String worldName;
+    private Location location;
 
     // Content
     private String body;
     private LinkedList<TicketComment> comments;
 
-    public Ticket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, String body) {
+    public Ticket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
         this.timestamp = timestamp;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
         this.serverName = serverName;
         this.worldName = worldName;
+        this.location = location;
         this.body = body;
 
         this.comments = new LinkedList<>();
@@ -38,11 +40,15 @@ public class Ticket {
         return "Player: " + playerName + "\n"
                 + "UUID: " + playerUUID + "\n"
                 + "Server: " + serverName + "\n"
-                + "World: " + worldName + "\n\n"
+                + "World: " + worldName + "\n"
+                + "Location: " + location + "\n\n"
                 + body;
     }
 
     public String getIssueTitle() {
-        return playerName + ": " + body.substring(0, maxTitleLength);
+        String result = playerName + ": " + body;
+        // Limit length if needed
+        if (result.length() > maxTitleLength) result = result.substring(0, maxTitleLength);
+        return result;
     }
 }
