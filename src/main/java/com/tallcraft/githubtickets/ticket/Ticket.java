@@ -48,7 +48,9 @@ public class Ticket {
     public String getIssueTitle() {
         String result = playerName + ": " + body;
         // Limit length if needed
-        if (result.length() > maxTitleLength) result = result.substring(0, maxTitleLength);
+        if (result.length() > maxTitleLength) {
+            result = result.substring(0, maxTitleLength - 3) + " (...)";
+        }
         return result;
     }
 }
