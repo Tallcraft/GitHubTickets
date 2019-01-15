@@ -41,7 +41,7 @@ public class GitHubController {
 
     public long createIssue(Ticket ticket) throws IOException {
         Issue issue = new Issue();
-        issue.setTitle(ticket.getIssueTitle()).setBodyText(ticket.getIssueBody());
+        issue.setTitle(ticket.getIssueTitle()).setBody(ticket.getIssueBody());
         Issue createdIssue = this.issueService.createIssue(this.repository, issue);
         return createdIssue.getId();
     }
