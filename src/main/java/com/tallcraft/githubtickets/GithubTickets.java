@@ -1,6 +1,9 @@
 package com.tallcraft.githubtickets;
 
 import com.tallcraft.githubtickets.github.GitHubController;
+import com.tallcraft.githubtickets.ticket.Location;
+import com.tallcraft.githubtickets.ticket.Ticket;
+import com.tallcraft.githubtickets.ticket.TicketController;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -8,35 +11,37 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.UUID;
 import java.util.logging.Logger;
-
-//import java.util.ArrayList;
-//import java.util.Date;
-//import java.util.UUID;
 
 public final class GithubTickets extends JavaPlugin {
     private final Logger logger = Logger.getLogger(this.getName());
 
     private static final GitHubController gitHubController = GitHubController.getInstance();
-//    private static final TicketController ticketController = TicketController.getInstance();
+
 
 
     private FileConfiguration config;
 
+    public static void main(String[] args) {
+        try {
+            gitHubController.connect(args[0], args[1], args[2], args[3]);
+        } catch (IOException e) {
+            System.err.println("Error while connect to github ticket repo");
+            e.printStackTrace();
+            return;
+        }
 
-//    // Test method
-//    public static void main(String[] args) {
-//
-//
-//        try {
-//            gitHubController.connect(user, password, ,repositoryName);
-//
-//            // Test ticket creation
-//            ticketController.createTicket(new Date(), UUID.randomUUID(), "Tallcraft", "Survival", "survival2", "Help, I've been griefed");
-//        } catch(IOException ex) {
-//            ex.printStackTrace();
-//        }
-//    }
+        TicketController ticketController = TicketController.getInstance();
+        Ticket ticket = new Ticket(new Date(), UUID.randomUUID(), "Steve", "Survival", "world", new Location(1, 2, 3), "Help, zombies!");
+        try {
+            ticketController.createTicket(ticket);
+        } catch (IOException e) {
+            System.err.println("Error while creating ticket");
+            e.printStackTrace();
+        }
+    }
 
 
     @Override

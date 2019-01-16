@@ -20,6 +20,10 @@ public class TicketController {
     private TicketController() {
     }
 
+    public long createTicket(Ticket ticket) throws IOException {
+        return githubControlller.createIssue(ticket);
+    }
+
     public long createTicket(Player player, Date timestamp, String message) throws IOException {
         org.bukkit.Location l = player.getLocation();
         Location playerLocation = new Location(l.getX(), l.getY(), l.getZ());
@@ -28,6 +32,6 @@ public class TicketController {
 
     public long createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) throws IOException {
         Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverName, worldName, location, body);
-        return githubControlller.createIssue(ticket);
+        return createTicket(ticket);
     }
 }

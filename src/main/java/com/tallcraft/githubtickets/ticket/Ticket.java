@@ -32,6 +32,10 @@ public class Ticket {
         this.comments = new LinkedList<>();
     }
 
+    public String getServerName() {
+        return serverName;
+    }
+
     /**
      * Transforms ticket data into text for github issue (excluding comments)
      * @return string for github issue body
