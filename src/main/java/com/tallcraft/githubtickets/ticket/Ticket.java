@@ -36,6 +36,10 @@ public class Ticket {
         return serverName;
     }
 
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
     /**
      * Transforms ticket data into text for github issue (excluding comments)
      * @return string for github issue body

@@ -19,8 +19,7 @@ public final class GithubTickets extends JavaPlugin {
     private final Logger logger = Logger.getLogger(this.getName());
 
     private static final GitHubController gitHubController = GitHubController.getInstance();
-
-
+    private static final TicketController ticketController = TicketController.getInstance();
 
     private FileConfiguration config;
 
@@ -33,7 +32,7 @@ public final class GithubTickets extends JavaPlugin {
             return;
         }
 
-        TicketController ticketController = TicketController.getInstance();
+
         Ticket ticket = new Ticket(new Date(), UUID.randomUUID(), "Steve", "Survival", "world", new Location(1, 2, 3), "Help, zombies!");
         try {
             ticketController.createTicket(ticket);
@@ -54,6 +53,12 @@ public final class GithubTickets extends JavaPlugin {
         String password = config.getString("github.auth.password");
         String repositoryUser = config.getString("github.repository.user");
         String repositoryName = config.getString("github.repository.repoName");
+
+        // Servername overwrite
+        String serverName = config.getString("serverName");
+        if (serverName != null && !serverName.isEmpty()) {
+            ticketController.setServerName(serverName);
+        }
 
         // TODO: disable plugin if config values are empty / invalid
 
@@ -80,6 +85,8 @@ public final class GithubTickets extends JavaPlugin {
         config = this.getConfig();
 
         MemoryConfiguration defaultConfig = new MemoryConfiguration();
+
+        defaultConfig.set("serverName", "");
 
         ConfigurationSection github = defaultConfig.createSection("github");
         ConfigurationSection githubAuth = github.createSection("auth");

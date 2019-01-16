@@ -66,7 +66,7 @@ public class GitHubController {
         Issue issue = new Issue();
         issue.setTitle(ticket.getIssueTitle()).setBody(ticket.getIssueBody());
 
-        Label serverLabel = new Label().setName(ticket.getServerName());
+        Label serverLabel = new Label().setName("Server: " + ticket.getServerName());
         issue.setLabels(new ArrayList<>(Collections.singletonList(serverLabel)));
 
         // API call to create issue
