@@ -23,6 +23,8 @@ class IssueConverter {
         return ourInstance;
     }
 
+    private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*$)", Pattern.DOTALL);
+
     /**
      * Get value from issue body
      *
@@ -36,9 +38,17 @@ class IssueConverter {
         Matcher matcher = pattern.matcher(issue.getBody());
 
         if (matcher.find()) {
-            return matcher.group(0);
+            return matcher.group(1);
         }
         return null; // Not found
+    }
+
+    private static String getTicketBody(Issue issue) {
+        Matcher matcher = ticketBodyPattern.matcher(issue.getBody());
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
     }
 
     /**
@@ -85,6 +95,7 @@ class IssueConverter {
         ticket.setServerName(getValue(issue, "Server"));
         ticket.setWorldName(getValue(issue, "World"));
         ticket.setLocation(Location.fromString(getValue(issue, "Location")));
+        ticket.setBody(getTicketBody(issue));
 
         return ticket;
     }

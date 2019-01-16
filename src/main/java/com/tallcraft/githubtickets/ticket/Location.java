@@ -52,7 +52,7 @@ public class Location {
     public static Location fromString(String str) {
         Matcher matcher = pattern.matcher(str);
         if (matcher.find()) {
-            return new Location(matcher.group(0), matcher.group(1), matcher.group(2));
+            return new Location(matcher.group(1), matcher.group(2), matcher.group(3));
         }
         return null;
     }

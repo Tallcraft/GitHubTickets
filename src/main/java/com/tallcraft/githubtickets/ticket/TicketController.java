@@ -44,4 +44,8 @@ public class TicketController {
         Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverNameOverride, worldName, location, body);
         return createTicket(ticket);
     }
+
+    public Ticket getTicket(int id) throws IOException {
+        return githubControlller.getTicket(id);
+    }
 }

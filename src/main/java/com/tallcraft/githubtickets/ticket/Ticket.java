@@ -89,4 +89,15 @@ public class Ticket {
     public void setBody(String body) {
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "Player: " + playerName + "\n"
+                + "UUID: " + playerUUID + "\n"
+                + "Timestamp: " + timestamp.toString() + "\n"
+                + "Server: " + serverName + "\n"
+                + "World: " + worldName + "\n"
+                + "Location: " + location + "\n\n"
+                + body;
+    }
 }

@@ -1,7 +1,6 @@
 package com.tallcraft.githubtickets;
 
 import com.tallcraft.githubtickets.github.GitHubController;
-import com.tallcraft.githubtickets.ticket.Location;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import org.bukkit.Bukkit;
@@ -11,8 +10,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 public final class GithubTickets extends JavaPlugin {
@@ -32,12 +29,20 @@ public final class GithubTickets extends JavaPlugin {
             return;
         }
 
+//
+//        Ticket ticket = new Ticket(new Date(), UUID.randomUUID(), "Steve", "Survival", "world", new Location(1, 2, 3), "Help, zombies!");
+//        try {
+//            ticketController.createTicket(ticket);
+//        } catch (IOException e) {
+//            System.err.println("Error while creating ticket");
+//            e.printStackTrace();
+//        }
 
-        Ticket ticket = new Ticket(new Date(), UUID.randomUUID(), "Steve", "Survival", "world", new Location(1, 2, 3), "Help, zombies!");
         try {
-            ticketController.createTicket(ticket);
+            Ticket ticket = ticketController.getTicket(24);
+            System.out.println("got ticket " + ticket);
         } catch (IOException e) {
-            System.err.println("Error while creating ticket");
+            System.err.println("Error while getting ticket");
             e.printStackTrace();
         }
     }

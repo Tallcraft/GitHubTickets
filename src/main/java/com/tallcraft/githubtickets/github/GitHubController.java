@@ -65,8 +65,11 @@ public class GitHubController {
 
         // API call to create issue
         Issue createdIssue = issueService.createIssue(repository, issue);
-        return createdIssue.getId();
+        return createdIssue.getNumber();
     }
 
-
+    public Ticket getTicket(int id) throws IOException {
+        Issue issue = issueService.getIssue(repository, id);
+        return issueConverter.issueToTicket(issue);
+    }
 }
