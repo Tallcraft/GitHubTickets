@@ -2,18 +2,16 @@ package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
 import org.eclipse.egit.github.core.Issue;
-import org.eclipse.egit.github.core.Label;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.IssueService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class GitHubController {
     private static GitHubController ourInstance = new GitHubController();
+    private static IssueConverter issueConverter = IssueConverter.getInstance();
 
     public static GitHubController getInstance() {
         return ourInstance;
@@ -62,22 +60,13 @@ public class GitHubController {
             throw new RuntimeException("Not connected to GitHub");
         }
 
-        // Initialize issue object
-        Issue issue = new Issue();
-        issue.setTitle(ticket.getIssueTitle()).setBody(ticket.getIssueBody());
-
-        Label serverLabel = new Label().setName("Server: " + ticket.getServerName());
-        issue.setLabels(new ArrayList<>(Collections.singletonList(serverLabel)));
+        // Convert to issue object
+        Issue issue = issueConverter.ticketToIssue(ticket);
 
         // API call to create issue
         Issue createdIssue = issueService.createIssue(repository, issue);
         return createdIssue.getId();
     }
 
-    public void listIssues() throws IOException {
-        for (Issue issue : issueService.getIssues()) {
-            System.out.println(issue.getTitle());
-        }
-    }
 
 }

@@ -6,8 +6,6 @@ import java.util.UUID;
 
 public class Ticket {
 
-    private static final int maxTitleLength = 50;
-
     // Meta
     private Date timestamp;
     private UUID playerUUID;
@@ -19,6 +17,10 @@ public class Ticket {
     // Content
     private String body;
     private LinkedList<TicketComment> comments;
+
+    public Ticket() {
+
+    }
 
     public Ticket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
         this.timestamp = timestamp;
@@ -40,25 +42,51 @@ public class Ticket {
         this.serverName = serverName;
     }
 
-    /**
-     * Transforms ticket data into text for github issue (excluding comments)
-     * @return string for github issue body
-     */
-    public String getIssueBody() {
-        return "Player: " + playerName + "\n"
-                + "UUID: " + playerUUID + "\n"
-                + "Server: " + serverName + "\n"
-                + "World: " + worldName + "\n"
-                + "Location: " + location + "\n\n"
-                + body;
+    public Date getTimestamp() {
+        return timestamp;
     }
 
-    public String getIssueTitle() {
-        String result = playerName + ": " + body;
-        // Limit length if needed
-        if (result.length() > maxTitleLength) {
-            result = result.substring(0, maxTitleLength - 3) + " (...)";
-        }
-        return result;
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public UUID getPlayerUUID() {
+        return playerUUID;
+    }
+
+    public void setPlayerUUID(UUID playerUUID) {
+        this.playerUUID = playerUUID;
+    }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    public String getWorldName() {
+        return worldName;
+    }
+
+    public void setWorldName(String worldName) {
+        this.worldName = worldName;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 }
