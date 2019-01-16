@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets;
 
+import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -13,6 +14,7 @@ public class TicketCommand implements CommandExecutor {
 
     private static final TicketController ticketController = TicketController.getInstance();
 
+    // TODO: Permission checks
 
     /**
      * Executes the given command, returning its success.
@@ -28,15 +30,46 @@ public class TicketCommand implements CommandExecutor {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0) { // No body
+        if (args.length < 1) {
             return false;
         }
+        switch (args[0].toLowerCase()) {
+            case "show":
+                return showTicket(sender, args);
+            case "create":
+                return createTicket(sender, args);
+        }
+        return false;
+    }
 
+    private boolean showTicket(CommandSender sender, String[] args) {
+        if (args.length < 2) return false;
+
+        int id;
+
+        try {
+            id = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage("Invalid ticket id!");
+            return true;
+        }
+
+        try {
+            Ticket ticket = ticketController.getTicket(id);
+            sender.sendMessage(ticket.toString());
+        } catch (IOException e) {
+            // TODO: ticket not found
+            sender.sendMessage("Error while getting ticket");
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    private boolean createTicket(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Console not supported");
+            sender.sendMessage("Console not supported (yet)");
             return false;
         }
-
 
         String message = String.join(" ", args);
 
@@ -51,4 +84,5 @@ public class TicketCommand implements CommandExecutor {
         sender.sendMessage("Created ticket #" + ticketID);
         return true;
     }
+
 }
