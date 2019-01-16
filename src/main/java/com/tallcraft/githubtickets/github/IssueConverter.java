@@ -11,6 +11,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Converts between Issues and Tickets by generating Strings and parsing from Strings
+ */
 class IssueConverter {
     // Max github issue title length
     private static final int maxTitleLength = 50;
@@ -43,6 +46,12 @@ class IssueConverter {
         return null; // Not found
     }
 
+    /**
+     * Extract ticket body text from issue
+     *
+     * @param issue Issue to extract body text from
+     * @return body text of issue without key value pairs
+     */
     private static String getTicketBody(Issue issue) {
         Matcher matcher = ticketBodyPattern.matcher(issue.getBody());
         if (matcher.find()) {

@@ -4,11 +4,15 @@ import com.tallcraft.githubtickets.ticket.Ticket;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.client.GitHubClient;
+import org.eclipse.egit.github.core.client.RequestException;
 import org.eclipse.egit.github.core.service.IssueService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
 
+/**
+ * Interfaces between this application and GitHub API
+ */
 public class GitHubController {
     private static GitHubController ourInstance = new GitHubController();
     private static IssueConverter issueConverter = IssueConverter.getInstance();
@@ -26,6 +30,15 @@ public class GitHubController {
     // Boolean to store current connection state to api
     private boolean isConnected = false;
 
+    /**
+     * Connect to GitHub API
+     *
+     * @param user           GitHub username
+     * @param password       GitHub password
+     * @param repositoryUser Issue Repository Owner
+     * @param repositoryName Issue Repository Name
+     * @throws IOException If an error occurs while establishing api connection
+     */
     public void connect(String user, String password, String repositoryUser, String repositoryName) throws IOException {
         if (user == null || user.isEmpty()) {
             throw new IllegalArgumentException("'user' must not be empty");
@@ -55,6 +68,12 @@ public class GitHubController {
         isConnected = true;
     }
 
+    /**
+     * Create Issue on Github from Ticket
+     * @param ticket Ticket data to create issue from
+     * @return Issue / Ticket ID
+     * @throws IOException If an error occurs during api communication
+     */
     public long createIssue(Ticket ticket) throws IOException {
         if (!isConnected) {
             throw new RuntimeException("Not connected to GitHub");
@@ -68,8 +87,22 @@ public class GitHubController {
         return createdIssue.getNumber();
     }
 
+    /**
+     * Get GitHub issue by id
+     * @param id ID to query for
+     * @return Ticket representation of GitHub issue with matching ID
+     * @throws IOException If an error occurs during api communication
+     */
     public Ticket getTicket(int id) throws IOException {
-        Issue issue = issueService.getIssue(repository, id);
-        return issueConverter.issueToTicket(issue);
+        try {
+            Issue issue = issueService.getIssue(repository, id);
+            return issueConverter.issueToTicket(issue);
+        } catch (RequestException ex) {
+            // Don't throw not found exceptions, but return null issue
+            if (ex.getStatus() == 404) {
+                return null;
+            }
+            throw ex;
+        }
     }
 }

@@ -86,6 +86,9 @@ public final class GithubTickets extends JavaPlugin {
         // Plugin shutdown logic
     }
 
+    /**
+     * Initialize config, set defaults if unset
+     */
     private void initConfig() {
         config = this.getConfig();
 

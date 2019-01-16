@@ -3,6 +3,9 @@ package com.tallcraft.githubtickets.ticket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Intermediate location class (Bukkit / GitHub agnostic)
+ */
 public class Location {
     private double x;
     private double y;
@@ -49,6 +52,12 @@ public class Location {
         return this.x + ", " + this.y + ", " + this.z;
     }
 
+    /**
+     * Construct Location object from comma separated string
+     *
+     * @param str comma separated string, e.g. 1.0, 2.0, 3.0
+     * @return Location object from string data
+     */
     public static Location fromString(String str) {
         Matcher matcher = pattern.matcher(str);
         if (matcher.find()) {

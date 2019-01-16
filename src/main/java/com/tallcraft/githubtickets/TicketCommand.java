@@ -42,11 +42,18 @@ public class TicketCommand implements CommandExecutor {
         return false;
     }
 
+    /**
+     * Get ticket by id and send it to user
+     *
+     * @param sender Requesting user
+     * @param args   command arguments
+     * @return true on valid syntax, false otherwise
+     */
     private boolean showTicket(CommandSender sender, String[] args) {
         if (args.length < 2) return false;
-
         int id;
 
+        // Parse ticket id
         try {
             id = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
@@ -54,17 +61,28 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
+        // Get ticket from GitHub by id
         try {
             Ticket ticket = ticketController.getTicket(id);
-            sender.sendMessage(ticket.toString());
+            if (ticket == null) {
+                sender.sendMessage("Ticket not found.");
+            } else {
+                sender.sendMessage(ticket.toString());
+            }
         } catch (IOException e) {
-            // TODO: ticket not found
             sender.sendMessage("Error while getting ticket");
             e.printStackTrace();
         }
         return true;
     }
 
+    /**
+     * Create ticket and reply with ticket id
+     *
+     * @param sender Requesting user
+     * @param args   command arguments
+     * @return true on valid syntax, false otherwise
+     */
     private boolean createTicket(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("Console not supported (yet)");

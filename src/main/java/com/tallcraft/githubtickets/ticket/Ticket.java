@@ -22,6 +22,17 @@ public class Ticket {
 
     }
 
+    /**
+     * Construct ticket
+     *
+     * @param timestamp  Timestamp of ticket creation
+     * @param playerUUID Minecraft player UUID (Unique identifier)
+     * @param playerName Minecraft player name
+     * @param serverName Name of server instance ticket was created in
+     * @param worldName  Name of world ticket was created in
+     * @param location   Exact location in world of ticket creation
+     * @param body       Ticket body text
+     */
     public Ticket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
         this.timestamp = timestamp;
         this.playerUUID = playerUUID;
