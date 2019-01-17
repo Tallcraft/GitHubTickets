@@ -11,7 +11,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 public class TicketCommand implements CommandExecutor {
 
@@ -72,7 +74,7 @@ public class TicketCommand implements CommandExecutor {
             if (ticket == null) {
                 sender.sendMessage("Ticket not found.");
             } else {
-                sender.sendMessage(ticket.toString());
+                sender.spigot().sendMessage(ticket.toMCComponent());
             }
         } catch (IOException e) {
             sender.sendMessage("Error while getting ticket");
@@ -152,7 +154,8 @@ public class TicketCommand implements CommandExecutor {
             return false;
         }
 
-        String message = String.join(" ", args);
+        // Join args to form string for ticket message
+        String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
 
         long ticketID;
         try {
