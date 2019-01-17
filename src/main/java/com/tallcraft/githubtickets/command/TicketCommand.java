@@ -1,7 +1,10 @@
-package com.tallcraft.githubtickets;
+package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -36,6 +39,8 @@ public class TicketCommand implements CommandExecutor {
         switch (args[0].toLowerCase()) {
             case "show":
                 return showTicket(sender, args);
+            case "tp":
+                return teleportTicket(sender, args);
             case "create":
                 return createTicket(sender, args);
         }
@@ -73,6 +78,64 @@ public class TicketCommand implements CommandExecutor {
             sender.sendMessage("Error while getting ticket");
             e.printStackTrace();
         }
+        return true;
+    }
+
+    /**
+     * Teleport player to ticket location
+     *
+     * @param sender Requesting user
+     * @param args   Command arguments
+     * @return true on valid syntax, false otherwise
+     */
+    private boolean teleportTicket(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Only players may use this command.");
+            return false;
+        }
+
+        // Cast to player so we can teleport
+        Player player = (Player) sender;
+
+        if (args.length < 2) return false;
+        int id;
+
+        // Parse ticket id
+        try {
+            id = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage("Invalid ticket id!");
+            return true;
+        }
+
+        Ticket ticket;
+
+        // Get ticket from GitHub by id
+        try {
+            ticket = ticketController.getTicket(id);
+            if (ticket == null) {
+                sender.sendMessage("Ticket not found.");
+                return true;
+            }
+        } catch (IOException e) {
+            sender.sendMessage("Error while getting ticket");
+            e.printStackTrace();
+            return true;
+        }
+
+        World world = Bukkit.getWorld(ticket.getWorldName());
+        if (world == null) {
+            sender.sendMessage("World " + ticket.getWorldName() + " not found!");
+            return true;
+        }
+        Location location = new Location(
+                world,
+                ticket.getLocation().getX(),
+                ticket.getLocation().getY(),
+                ticket.getLocation().getZ());
+
+        sender.sendMessage("Teleporting to ticket..."); // TODO: print ticket id
+        player.teleport(location);
         return true;
     }
 

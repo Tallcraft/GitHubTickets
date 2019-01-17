@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets;
 
+import com.tallcraft.githubtickets.command.TicketCommand;
 import com.tallcraft.githubtickets.github.GitHubController;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
