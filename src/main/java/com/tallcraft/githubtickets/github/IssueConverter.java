@@ -26,7 +26,7 @@ class IssueConverter {
         return ourInstance;
     }
 
-    private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*$)", Pattern.DOTALL);
+    private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*)", Pattern.DOTALL);
 
     /**
      * Get value from issue body
