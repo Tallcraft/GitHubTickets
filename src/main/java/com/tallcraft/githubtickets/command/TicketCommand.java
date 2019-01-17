@@ -136,7 +136,7 @@ public class TicketCommand implements CommandExecutor {
                 ticket.getLocation().getY(),
                 ticket.getLocation().getZ());
 
-        sender.sendMessage("Teleporting to ticket..."); // TODO: print ticket id
+        sender.sendMessage("Teleporting to ticket #" + ticket.getId());
         player.teleport(location);
         return true;
     }
