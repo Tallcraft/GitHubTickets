@@ -14,6 +14,9 @@ public class Ticket {
     private String worldName;
     private Location location;
 
+    private int id;
+    private boolean isOpen;
+
     // Content
     private String body;
     private LinkedList<TicketComment> comments;
@@ -34,6 +37,23 @@ public class Ticket {
      * @param body       Ticket body text
      */
     public Ticket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
+        this(-1, true, timestamp, playerUUID, playerName,serverName, worldName, location, body);
+    }
+
+    /**
+     * Construct ticket
+     * @param isOpen Is ticket open?
+     * @param timestamp  Timestamp of ticket creation
+     * @param playerUUID Minecraft player UUID (Unique identifier)
+     * @param playerName Minecraft player name
+     * @param serverName Name of server instance ticket was created in
+     * @param worldName  Name of world ticket was created in
+     * @param location   Exact location in world of ticket creation
+     * @param body       Ticket body text
+     */
+    public Ticket(int id, boolean isOpen, Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
+        this.id = id;
+        this.isOpen = isOpen;
         this.timestamp = timestamp;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
@@ -93,6 +113,22 @@ public class Ticket {
         this.location = location;
     }
 
+    public boolean isOpen() {
+        return isOpen;
+    }
+
+    public void setOpen(boolean open) {
+        isOpen = open;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getBody() {
         return body;
     }
@@ -104,6 +140,8 @@ public class Ticket {
     @Override
     public String toString() {
         return "Player: " + playerName + "\n"
+                + "ID: " + id + "\n"
+                + "Status: " + (isOpen ? "Open" : "Closed") + "\n"
                 + "UUID: " + playerUUID + "\n"
                 + "Timestamp: " + timestamp.toString() + "\n"
                 + "Server: " + serverName + "\n"

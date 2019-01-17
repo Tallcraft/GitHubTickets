@@ -55,7 +55,7 @@ public class TicketController {
      */
     public long createTicket(Player player, Date timestamp, String message) throws IOException {
         org.bukkit.Location l = player.getLocation();
-        Location playerLocation = new Location(l.getX(), l.getY(), l.getZ());
+        Location playerLocation = new Location(l.getBlockX(), l.getBlockY(), l.getBlockZ());
 
         return createTicket(timestamp, player.getUniqueId(), player.getName(), Bukkit.getServer().getName(), player.getWorld().getName(), playerLocation, message);
     }

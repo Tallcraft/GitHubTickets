@@ -88,6 +88,8 @@ class IssueConverter {
     Ticket issueToTicket(Issue issue) {
         Ticket ticket = new Ticket();
 
+        ticket.setId(issue.getNumber());
+        ticket.setOpen(issue.getState().equalsIgnoreCase("open"));
         ticket.setTimestamp(issue.getCreatedAt());
 
         String uuid = getValue(issue, "UUID");

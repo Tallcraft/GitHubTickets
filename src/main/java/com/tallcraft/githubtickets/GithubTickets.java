@@ -49,6 +49,10 @@ public final class GithubTickets extends JavaPlugin {
     }
 
 
+    private boolean isUnset(String str) {
+        return str == null || str.isEmpty();
+    }
+
     @Override
     public void onEnable() {
         // Initialize with defaults
@@ -64,6 +68,12 @@ public final class GithubTickets extends JavaPlugin {
         String serverName = config.getString("serverName");
         if (serverName != null && !serverName.isEmpty()) {
             ticketController.setServerName(serverName);
+        }
+
+        if(isUnset(user) || isUnset(password) || isUnset(repositoryUser) || isUnset(repositoryName)) {
+            logger.info("Missing GitHub configuration. Please add it in config.yml. Disabling.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
         }
 
         // TODO: disable plugin if config values are empty / invalid
