@@ -3,7 +3,7 @@ version: ${project.version}
 main: com.tallcraft.githubtickets.GithubTickets
 api-version: 1.13
 authors: [Tallcraft]
-description: Ticket system interfacing with GitHubController
+description: Ticket System based on GitHub Issues
 commands:
   ticket:
     description: Create and manage tickets
