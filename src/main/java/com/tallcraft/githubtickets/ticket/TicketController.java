@@ -81,6 +81,40 @@ public class TicketController {
     }
 
     /**
+     * Open Ticket
+     *
+     * @param id Ticket ID
+     * @return true on success, false on ticket not found
+     * @throws IOException API Error
+     */
+    public boolean openTicket(int id) throws IOException {
+        return changeTicketStatus(id, true);
+    }
+
+    /**
+     * Close Ticket
+     *
+     * @param id Ticket ID
+     * @return true on success, false on ticket not found
+     * @throws IOException API Error
+     */
+    public boolean closeTicket(int id) throws IOException {
+        return changeTicketStatus(id, false);
+    }
+
+    /**
+     * Change ticket status
+     *
+     * @param id   Ticket ID
+     * @param open true = open, false = closed
+     * @return true on success, false on ticket not found
+     * @throws IOException API Error
+     */
+    public boolean changeTicketStatus(int id, boolean open) throws IOException {
+        return githubController.changeTicketStatus(id, open);
+    }
+
+    /**
      * Get Ticket by ID
      * @param id ticket id to query for.
      * @return Ticket matching id

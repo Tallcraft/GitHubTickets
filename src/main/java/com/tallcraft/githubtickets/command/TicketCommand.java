@@ -44,22 +44,41 @@ public class TicketCommand implements CommandExecutor {
 
         // No args => show help
         if (args.length < 1) {
-            return showHelp(sender, label);
+            showHelp(sender, label);
+            return true;
         }
+
+        // Is user command syntax valid?
+        boolean validSyntax = false;
 
         // Assign to handling methods
         switch (args[0].toLowerCase()) {
             case "show":
-                return showTicket(sender, args);
+                validSyntax = showTicket(sender, args);
+                break;
             case "tp":
-                return teleportTicket(sender, args);
+                validSyntax = teleportTicket(sender, args);
+                break;
             case "create":
-                return createTicket(sender, args);
+                validSyntax = createTicket(sender, args);
+                break;
             case "list":
-                return showTicketList(sender, args);
-            default:
-                return showHelp(sender, label);
+                validSyntax = showTicketList(sender, args);
+                break;
+            case "close":
+                validSyntax = changeTicketStatus(sender, args, false);
+                break;
+            case "reopen":
+                validSyntax = changeTicketStatus(sender, args, true);
+                break;
         }
+
+        // If syntax is invalid show help message
+        if (!validSyntax) {
+            showHelp(sender, label);
+        }
+
+        return true;
     }
 
     /**
@@ -67,9 +86,8 @@ public class TicketCommand implements CommandExecutor {
      *
      * @param sender Source of the command
      * @param label  Alias of the command which was used
-     * @return
      */
-    private boolean showHelp(CommandSender sender, String label) {
+    private void showHelp(CommandSender sender, String label) {
         ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
         ComponentBuilder builder = new ComponentBuilder("");
 
@@ -91,7 +109,38 @@ public class TicketCommand implements CommandExecutor {
         builder.append(baseCmd + " tp <ID>", f).color(ChatColor.GOLD);
         builder.append(" Teleport to ticket location", f).append("\n");
 
+        builder.append(baseCmd + " close <ID>", f).color(ChatColor.GOLD);
+        builder.append(" Close Ticket", f).append("\n");
+
+        builder.append(baseCmd + " reopen <ID>", f).color(ChatColor.GOLD);
+        builder.append(" Re-open Ticket", f).append("\n");
+
         sender.spigot().sendMessage(builder.create());
+    }
+
+    private boolean changeTicketStatus(CommandSender sender, String[] args, boolean open) {
+        if (args.length < 2) return false;
+
+        int id;
+
+        // Parse ticket id
+        try {
+            id = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage("Invalid ticket id!");
+            return true;
+        }
+
+        try {
+            if (ticketController.changeTicketStatus(id, open)) {
+                sender.sendMessage("Ticket #" + id + " " + (open ? "reopened" : "closed") + ".");
+            } else {
+                sender.sendMessage("Ticket not found.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            sender.sendMessage("Error while changing ticket state");
+        }
 
         return true;
     }

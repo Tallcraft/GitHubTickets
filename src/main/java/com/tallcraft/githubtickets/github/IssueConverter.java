@@ -4,6 +4,7 @@ import com.tallcraft.githubtickets.ticket.Location;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Label;
+import org.eclipse.egit.github.core.service.IssueService;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -87,7 +88,7 @@ class IssueConverter {
         Ticket ticket = new Ticket();
 
         ticket.setId(issue.getNumber());
-        ticket.setOpen(issue.getState().equalsIgnoreCase("open"));
+        ticket.setOpen(issue.getState().equals(IssueService.STATE_OPEN));
         ticket.setTimestamp(issue.getCreatedAt());
 
         String uuid = getValue(issue, "UUID");

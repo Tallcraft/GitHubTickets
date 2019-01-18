@@ -108,6 +108,43 @@ public class GitHubController {
         }
     }
 
+
+    /**
+     * Change status of ticket to either closed or open
+     *
+     * @param id   Ticket ID
+     * @param open true = open, false = closed
+     * @return true on success, false on ticket not found
+     * @throws IOException API error
+     */
+    public boolean changeTicketStatus(int id, boolean open) throws IOException {
+        Issue issue;
+        try {
+            issue = issueService.getIssue(repository, id);
+        } catch (RequestException ex) {
+            // Don't throw not found exceptions, but return null issue
+            if (ex.getStatus() == 404) {
+                return false;
+            }
+            throw ex;
+        }
+
+        changeTicketStatus(issue, open);
+        return true;
+    }
+
+    /**
+     * Change status of ticket to either closed or open
+     *
+     * @param issue GitHub API Issue object
+     * @param open  true = open, false = closed
+     * @throws IOException API error
+     */
+    private void changeTicketStatus(Issue issue, boolean open) throws IOException {
+        issue.setState(open ? IssueService.STATE_OPEN : IssueService.STATE_CLOSED);
+        issueService.editIssue(repository, issue);
+    }
+
     public List<Ticket> getOpenTickets() throws IOException {
         Map<String, String> issueFilters = Map.of(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
         List<Issue> issues = issueService.getIssues(repository, issueFilters);
