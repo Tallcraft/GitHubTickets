@@ -230,9 +230,13 @@ public class Ticket {
         ComponentBuilder uuidText = new ComponentBuilder("UUID").bold(true).color(chatKeyColor).append("\n").append(playerUUID.toString(), f);
         HoverEvent playerNameHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, uuidText.create());
 
-        // Teleport Click event for location
+        // Location Hover Message & click for teleport
         HoverEvent locationHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Teleport to ticket location").create());
         ClickEvent locationClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket tp " + id);
+
+        // Status Hover message & click for status  toggle
+        HoverEvent statusHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to " + (isOpen ? "CLOSE" : "OPEN")).create());
+        ClickEvent statusClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket " + (isOpen ? "close" : "reopen") + " " + id);
 
         // Metadata
         builder.append("Player: ", f).bold(true).color(chatKeyColor).event(playerNameHover);
@@ -240,8 +244,8 @@ public class Ticket {
 
         // Status
         ChatColor statusColor = isOpen ? ticketOpenColor : ticketClosedColor;
-        builder.append("Status: ", f).bold(true).color(chatKeyColor);
-        builder.append(isOpenString(), f).color(statusColor).append("\n");
+        builder.append("Status: ", f).bold(true).color(chatKeyColor).event(statusHover).event(statusClick);
+        builder.append(isOpenString(), f).color(statusColor).event(statusHover).event(statusClick).append("\n");
 
         // Date
         builder.append("Date: ", f).bold(true).color(chatKeyColor);
