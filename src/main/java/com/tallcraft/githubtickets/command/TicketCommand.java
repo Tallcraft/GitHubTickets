@@ -4,6 +4,7 @@ import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -97,22 +98,28 @@ public class TicketCommand implements CommandExecutor {
         builder.append("Commands >>>>>>").color(ChatColor.GOLD).bold(true).append("\n");
 
         // TODO: permission check. Only show to players with permission
-        builder.append(baseCmd + " create <Message>", f).color(ChatColor.GOLD);
+        builder.append(baseCmd + " create <Message>", f).color(ChatColor.GOLD)
+                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket create "));
         builder.append(" Create a ticket", f).append("\n");
 
-        builder.append(baseCmd + " list", f).color(ChatColor.GOLD);
+        builder.append(baseCmd + " list", f).color(ChatColor.GOLD)
+                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket list"));
         builder.append(" List open tickets", f).append("\n");
 
-        builder.append(baseCmd + " show <ID>", f).color(ChatColor.GOLD);
+        builder.append(baseCmd + " show <ID>", f).color(ChatColor.GOLD)
+                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket show "));
         builder.append(" Show ticket details", f).append("\n");
 
-        builder.append(baseCmd + " tp <ID>", f).color(ChatColor.GOLD);
+        builder.append(baseCmd + " tp <ID>", f).color(ChatColor.GOLD)
+                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket tp "));
         builder.append(" Teleport to ticket location", f).append("\n");
 
-        builder.append(baseCmd + " close <ID>", f).color(ChatColor.GOLD);
+        builder.append(baseCmd + " close <ID>", f).color(ChatColor.GOLD)
+                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket close "));
         builder.append(" Close Ticket", f).append("\n");
 
-        builder.append(baseCmd + " reopen <ID>", f).color(ChatColor.GOLD);
+        builder.append(baseCmd + " reopen <ID>", f).color(ChatColor.GOLD)
+                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket reopen "));
         builder.append(" Re-open Ticket", f).append("\n");
 
         sender.spigot().sendMessage(builder.create());
