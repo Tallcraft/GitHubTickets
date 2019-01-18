@@ -43,7 +43,7 @@ public class TicketController {
      */
     public long createTicket(Ticket ticket) throws IOException {
         if (serverName != null) ticket.setServerName(serverName);
-        return githubController.createIssue(ticket);
+        return githubController.createTicket(ticket);
     }
 
     /**

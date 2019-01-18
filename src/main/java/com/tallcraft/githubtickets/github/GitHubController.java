@@ -76,7 +76,7 @@ public class GitHubController {
      * @return Issue / Ticket ID
      * @throws IOException If an error occurs during api communication
      */
-    public long createIssue(Ticket ticket) throws IOException {
+    public long createTicket(Ticket ticket) throws IOException {
         if (!isConnected) {
             throw new RuntimeException("Not connected to GitHub");
         }
