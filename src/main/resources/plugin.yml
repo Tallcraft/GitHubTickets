@@ -7,4 +7,3 @@ description: Ticket system interfacing with GitHubController
 commands:
   ticket:
     description: Create and manage tickets
-    usage: /ticket [ show | create ]

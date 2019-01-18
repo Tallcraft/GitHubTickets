@@ -2,6 +2,9 @@ package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -20,6 +23,8 @@ public class TicketCommand implements CommandExecutor {
 
     private static final TicketController ticketController = TicketController.getInstance();
 
+    private static final BaseComponent[] ticketListHeading = new ComponentBuilder("Tickets >>>>>>").color(ChatColor.GOLD).bold(true).create();
+
     // TODO: Permission checks
 
     /**
@@ -36,9 +41,13 @@ public class TicketCommand implements CommandExecutor {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+        // No args => show help
         if (args.length < 1) {
-            return false;
+            return showHelp(sender, label);
         }
+
+        // Assign to handling methods
         switch (args[0].toLowerCase()) {
             case "show":
                 return showTicket(sender, args);
@@ -48,14 +57,49 @@ public class TicketCommand implements CommandExecutor {
                 return createTicket(sender, args);
             case "list":
                 return showTicketList(sender, args);
+            default:
+                return showHelp(sender, label);
         }
-        return false;
+    }
+
+    /**
+     * Show command help to user with command list and description
+     *
+     * @param sender Source of the command
+     * @param label  Alias of the command which was used
+     * @return
+     */
+    private boolean showHelp(CommandSender sender, String label) {
+        ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
+        ComponentBuilder builder = new ComponentBuilder("");
+
+        String baseCmd = "/" + label;
+
+        // TODO: check if any permission, otherwise return empty
+        builder.append("Commands >>>>>>").color(ChatColor.GOLD).bold(true).append("\n");
+
+        // TODO: permission check. Only show to players with permission
+        builder.append(baseCmd + " create <Message>", f).color(ChatColor.GOLD);
+        builder.append(" Create a ticket", f).append("\n");
+
+        builder.append(baseCmd + " list", f).color(ChatColor.GOLD);
+        builder.append(" List open tickets", f).append("\n");
+
+        builder.append(baseCmd + " show <ID>", f).color(ChatColor.GOLD);
+        builder.append(" Show ticket details", f).append("\n");
+
+        builder.append(baseCmd + " tp <ID>", f).color(ChatColor.GOLD);
+        builder.append(" Teleport to ticket location", f).append("\n");
+
+        sender.spigot().sendMessage(builder.create());
+
+        return true;
     }
 
     /**
      * Get ticket by id and send it to user
      *
-     * @param sender Requesting user
+     * @param sender Source of the command
      * @param args   command arguments
      * @return true on valid syntax, false otherwise
      */
@@ -90,7 +134,7 @@ public class TicketCommand implements CommandExecutor {
     /**
      * Show list of opened tickets
      *
-     * @param sender Requesting user
+     * @param sender Source of the command
      * @param args   command arguments
      * @return true on valid syntax, false otherwise
      */
@@ -98,6 +142,7 @@ public class TicketCommand implements CommandExecutor {
         List<Ticket> ticketList = null;
         try {
             ticketList = ticketController.getOpenTickets();
+            sender.spigot().sendMessage(ticketListHeading);
             sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
         } catch (IOException e) {
             sender.sendMessage("Error while getting ticket list");
@@ -109,7 +154,7 @@ public class TicketCommand implements CommandExecutor {
     /**
      * Teleport player to ticket location
      *
-     * @param sender Requesting user
+     * @param sender Source of the command
      * @param args   Command arguments
      * @return true on valid syntax, false otherwise
      */
@@ -167,7 +212,7 @@ public class TicketCommand implements CommandExecutor {
     /**
      * Create ticket and reply with ticket id
      *
-     * @param sender Requesting user
+     * @param sender Source of the command
      * @param args   command arguments
      * @return true on valid syntax, false otherwise
      */
