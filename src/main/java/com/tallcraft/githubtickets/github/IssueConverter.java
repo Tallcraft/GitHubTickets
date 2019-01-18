@@ -5,9 +5,7 @@ import com.tallcraft.githubtickets.ticket.Ticket;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Label;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -109,6 +107,20 @@ class IssueConverter {
         ticket.setBody(getTicketBody(issue));
 
         return ticket;
+    }
+
+    /**
+     * Convert collection of issues to tickets
+     *
+     * @param issues Issue objects to convert
+     * @return Collection of tickets
+     */
+    List<Ticket> issueToTicket(Collection<Issue> issues) {
+        List<Ticket> tickets = new LinkedList<>();
+        for (Issue issue : issues) {
+            tickets.add(issueToTicket(issue));
+        }
+        return tickets;
     }
 
     /**

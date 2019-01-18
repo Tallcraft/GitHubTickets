@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class TicketCommand implements CommandExecutor {
@@ -45,6 +46,8 @@ public class TicketCommand implements CommandExecutor {
                 return teleportTicket(sender, args);
             case "create":
                 return createTicket(sender, args);
+            case "list":
+                return showTicketList(sender, args);
         }
         return false;
     }
@@ -74,10 +77,30 @@ public class TicketCommand implements CommandExecutor {
             if (ticket == null) {
                 sender.sendMessage("Ticket not found.");
             } else {
-                sender.spigot().sendMessage(ticket.toMCComponent());
+                sender.spigot().sendMessage(ticket.toChat());
+                sender.sendMessage("");
             }
         } catch (IOException e) {
             sender.sendMessage("Error while getting ticket");
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    /**
+     * Show list of opened tickets
+     *
+     * @param sender Requesting user
+     * @param args   command arguments
+     * @return true on valid syntax, false otherwise
+     */
+    private boolean showTicketList(CommandSender sender, String[] args) {
+        List<Ticket> ticketList = null;
+        try {
+            ticketList = ticketController.getOpenTickets();
+            sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
+        } catch (IOException e) {
+            sender.sendMessage("Error while getting ticket list");
             e.printStackTrace();
         }
         return true;

@@ -7,10 +7,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 
 import java.text.DateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 public class Ticket {
 
@@ -20,6 +17,9 @@ public class Ticket {
     private static ChatColor chatKeyColor = ChatColor.GOLD;
     private static ChatColor ticketOpenColor = ChatColor.DARK_GREEN;
     private static ChatColor ticketClosedColor = ChatColor.DARK_RED;
+    // Variable passed to append to reset formatting / events
+    private static final ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
+    private static final int ticketListTextLength = 60;
 
     // Meta
     private Date timestamp;
@@ -176,22 +176,58 @@ public class Ticket {
     }
 
     /**
+     * Convert list of tickets to formatted message for MC chat
+     *
+     * @param tickets list of tickets
+     * @return BaseComponent holding ticket list as mc chat message
+     */
+    public static BaseComponent[] ticketListToChat(List<Ticket> tickets) {
+        ComponentBuilder builder = new ComponentBuilder("");
+
+        for (Ticket ticket : tickets) {
+
+            // Hover text: Playername and ticket body
+            ComponentBuilder ticketHoverText = new ComponentBuilder("").append("Ticket #" + ticket.getId() + "\n").color(chatKeyColor).append(ticket.getPlayerName(), f).bold(true).append("\n").append(ticket.getBody(), f).append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
+            HoverEvent ticketHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, ticketHoverText.create());
+            ClickEvent ticketClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket show " + ticket.getId());
+
+            // Ticket ID
+            builder.append(Integer.toString(ticket.getId()), f).bold(true).color(chatKeyColor).event(ticketHover).event(ticketClick);
+
+            // Ticket body
+            // Limit ticket body for list view
+            String ticketBody = ticket.getBody();
+            String ticketPlayer = ticket.getPlayerName();
+
+            // Calculate length of list entry, constant is extra space
+            int entryLength = ticketBody.length() + ticketPlayer.length() + Integer.toString(ticket.getId()).length() + 1;
+            int delta = ticketListTextLength - entryLength;
+
+            // We have to cut because entryLength is too long
+            if (delta < 0) {
+                int lastIndex = ticketBody.length() + delta - 4;
+                if (lastIndex < 0) lastIndex = 0;
+                ticketBody = ticketBody.substring(0, lastIndex) + " ...";
+            }
+            builder.append(" " + ticketPlayer + ": ", f).color(chatKeyColor).event(ticketHover).event(ticketClick);
+            builder.append(ticketBody, f).event(ticketHover).event(ticketClick).append("\n");
+        }
+        return builder.create();
+    }
+
+    /**
      * Conver Ticket to BaseComponent used for Minecraft chat output
      *
      * @return BaseComponent representing ticket
      */
-    public BaseComponent[] toMCComponent() {
+    public BaseComponent[] toChat() {
         // Initialize main ticket component builder
         ComponentBuilder builder = new ComponentBuilder("");
-
-        // Variable passed to append to reset formatting / events
-        ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
-
 
         builder.bold(true).color(chatKeyColor).append("Ticket #" + id).append(" >>>>>>").append("\n");
 
         // Hover text of player nametag
-        ComponentBuilder uuidText = new ComponentBuilder("UUID").bold(true).append("\n").append(playerUUID.toString(), f);
+        ComponentBuilder uuidText = new ComponentBuilder("UUID").bold(true).color(chatKeyColor).append("\n").append(playerUUID.toString(), f);
         HoverEvent playerNameHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, uuidText.create());
 
         // Teleport Click event for location

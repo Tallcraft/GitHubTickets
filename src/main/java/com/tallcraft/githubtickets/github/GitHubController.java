@@ -9,6 +9,8 @@ import org.eclipse.egit.github.core.service.IssueService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Interfaces between this application and GitHub API
@@ -104,5 +106,11 @@ public class GitHubController {
             }
             throw ex;
         }
+    }
+
+    public List<Ticket> getOpenTickets() throws IOException {
+        Map<String, String> issueFilters = Map.of(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
+        List<Issue> issues = issueService.getIssues(repository, issueFilters);
+        return issueConverter.issueToTicket(issues);
     }
 }

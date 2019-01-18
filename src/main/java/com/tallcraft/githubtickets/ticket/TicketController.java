@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -87,5 +88,9 @@ public class TicketController {
      */
     public Ticket getTicket(int id) throws IOException {
         return githubController.getTicket(id);
+    }
+
+    public List<Ticket> getOpenTickets() throws IOException {
+        return githubController.getOpenTickets();
     }
 }
