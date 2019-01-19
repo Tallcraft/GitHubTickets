@@ -227,7 +227,7 @@ public class Ticket {
         builder.bold(true).color(chatKeyColor).append("Ticket #" + id).append(" >>>>>>").append("\n");
 
         // Hover text of player nametag
-        ComponentBuilder uuidText = new ComponentBuilder("UUID").bold(true).color(chatKeyColor).append("\n").append(playerUUID.toString(), f);
+        ComponentBuilder uuidText = new ComponentBuilder("").append("UUID", f).bold(true).color(chatKeyColor).append("\n").append(playerUUID.toString(), f);
         HoverEvent playerNameHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, uuidText.create());
 
         // Location Hover Message & click for teleport
