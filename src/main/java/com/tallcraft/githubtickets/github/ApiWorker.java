@@ -26,7 +26,6 @@ public class ApiWorker extends BukkitRunnable {
      */
     @Override
     public void run() {
-        // TODO: shutdown flag?
         while (true) {
             try {
                 Runnable task = tasks.poll(1, TimeUnit.DAYS);
@@ -37,7 +36,6 @@ public class ApiWorker extends BukkitRunnable {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                // TODO: how to cleanly shutdown?
             }
         }
     }
