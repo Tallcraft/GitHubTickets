@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
+import com.tallcraft.githubtickets.GithubTickets;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import net.md_5.bungee.api.ChatColor;
@@ -18,15 +19,24 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class TicketCommand implements CommandExecutor {
 
     private static final TicketController ticketController = TicketController.getInstance();
 
+    private GithubTickets plugin;
+
     private static final BaseComponent[] ticketListHeading = new ComponentBuilder("Tickets >>>>>>").color(ChatColor.GOLD).bold(true).create();
 
     // TODO: Permission checks
+    // TODO: for all async / rate limited calls: list of players, add to it if player called something, remove it when result is there. this prevents multiple ongoing calls by player
+
+
+    public TicketCommand(GithubTickets plugin) {
+        this.plugin = plugin;
+    }
 
     /**
      * Executes the given command, returning its success.
@@ -125,6 +135,7 @@ public class TicketCommand implements CommandExecutor {
         sender.spigot().sendMessage(builder.create());
     }
 
+    // TODO: async
     private boolean changeTicketStatus(CommandSender sender, String[] args, boolean open) {
         if (args.length < 2) return false;
 
@@ -138,16 +149,19 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
-        try {
-            if (ticketController.changeTicketStatus(id, open)) {
-                sender.sendMessage("Ticket #" + id + " " + (open ? "reopened" : "closed") + ".");
-            } else {
-                sender.sendMessage("Ticket not found.");
+        new AsyncCmdTask(() -> {
+
+            try {
+                if (ticketController.changeTicketStatus(id, open).get()) {
+                    sender.sendMessage("Ticket #" + id + " " + (open ? "reopened" : "closed") + ".");
+                } else {
+                    sender.sendMessage("Ticket not found.");
+                }
+            } catch (IOException | InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                sender.sendMessage("Error while changing ticket state");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            sender.sendMessage("Error while changing ticket state");
-        }
+        }).runTaskAsynchronously(plugin);
 
         return true;
     }
@@ -161,6 +175,7 @@ public class TicketCommand implements CommandExecutor {
      */
     private boolean showTicket(CommandSender sender, String[] args) {
         if (args.length < 2) return false;
+
         int id;
 
         // Parse ticket id
@@ -171,19 +186,21 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
-        // Get ticket from GitHub by id
-        try {
-            Ticket ticket = ticketController.getTicket(id);
-            if (ticket == null) {
-                sender.sendMessage("Ticket not found.");
-            } else {
-                sender.spigot().sendMessage(ticket.toChat());
-                sender.sendMessage("");
+        new AsyncCmdTask(() -> {
+            // Get ticket from GitHub by id
+            try {
+                Ticket ticket = ticketController.getTicket(id).get();
+                if (ticket == null) {
+                    sender.sendMessage("Ticket not found.");
+                } else {
+                    sender.spigot().sendMessage(ticket.toChat());
+                    sender.sendMessage("");
+                }
+            } catch (IOException | InterruptedException | ExecutionException e) {
+                sender.sendMessage("Error while getting ticket");
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            sender.sendMessage("Error while getting ticket");
-            e.printStackTrace();
-        }
+        }).runTaskAsynchronously(plugin);
         return true;
     }
 
@@ -195,15 +212,18 @@ public class TicketCommand implements CommandExecutor {
      * @return true on valid syntax, false otherwise
      */
     private boolean showTicketList(CommandSender sender, String[] args) {
-        List<Ticket> ticketList = null;
-        try {
-            ticketList = ticketController.getOpenTickets();
-            sender.spigot().sendMessage(ticketListHeading);
-            sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
-        } catch (IOException e) {
-            sender.sendMessage("Error while getting ticket list");
-            e.printStackTrace();
-        }
+        new AsyncCmdTask(() -> {
+            List<Ticket> ticketList = null;
+            try {
+                ticketList = ticketController.getOpenTickets().get();
+                sender.spigot().sendMessage(ticketListHeading);
+                sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
+            } catch (IOException | InterruptedException | ExecutionException e) {
+                sender.sendMessage("Error while getting ticket list");
+                e.printStackTrace();
+            }
+        }).runTaskAsynchronously(plugin);
+
         return true;
     }
 
@@ -215,15 +235,16 @@ public class TicketCommand implements CommandExecutor {
      * @return true on valid syntax, false otherwise
      */
     private boolean teleportTicket(CommandSender sender, String[] args) {
+        if (args.length < 2) return false;
+
         if (!(sender instanceof Player)) {
             sender.sendMessage("Only players may use this command.");
-            return false;
+            return true;
         }
 
         // Cast to player so we can teleport
         Player player = (Player) sender;
 
-        if (args.length < 2) return false;
         int id;
 
         // Parse ticket id
@@ -234,34 +255,37 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
-        Ticket ticket;
+        new AsyncCmdTask(() -> {
 
-        // Get ticket from GitHub by id
-        try {
-            ticket = ticketController.getTicket(id);
-            if (ticket == null) {
-                sender.sendMessage("Ticket not found.");
-                return true;
+            Ticket ticket;
+
+            // Get ticket from GitHub by id
+            try {
+                ticket = ticketController.getTicket(id).get();
+                if (ticket == null) {
+                    sender.sendMessage("Ticket not found.");
+                    return;
+                }
+            } catch (IOException | InterruptedException | ExecutionException e) {
+                sender.sendMessage("Error while getting ticket");
+                e.printStackTrace();
+                return;
             }
-        } catch (IOException e) {
-            sender.sendMessage("Error while getting ticket");
-            e.printStackTrace();
-            return true;
-        }
 
-        World world = Bukkit.getWorld(ticket.getWorldName());
-        if (world == null) {
-            sender.sendMessage("World " + ticket.getWorldName() + " not found!");
-            return true;
-        }
-        Location location = new Location(
-                world,
-                ticket.getLocation().getX(),
-                ticket.getLocation().getY(),
-                ticket.getLocation().getZ());
+            World world = Bukkit.getWorld(ticket.getWorldName());
+            if (world == null) {
+                sender.sendMessage("World " + ticket.getWorldName() + " not found!");
+                return;
+            }
+            Location location = new Location(
+                    world,
+                    ticket.getLocation().getX(),
+                    ticket.getLocation().getY(),
+                    ticket.getLocation().getZ());
 
-        sender.sendMessage("Teleporting to ticket #" + ticket.getId());
-        player.teleport(location);
+            sender.sendMessage("Teleporting to ticket #" + ticket.getId());
+            player.teleport(location);
+        }).runTaskAsynchronously(plugin);
         return true;
     }
 
@@ -275,21 +299,23 @@ public class TicketCommand implements CommandExecutor {
     private boolean createTicket(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("Console not supported (yet)");
-            return false;
+            return true;
         }
+        new AsyncCmdTask(() -> {
+            // Join args to form string for ticket message
+            String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
 
-        // Join args to form string for ticket message
-        String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
+            long ticketID;
+            try {
+                ticketID = ticketController.createTicket((Player) sender, new Date(), message).get();
+            } catch (IOException | InterruptedException | ExecutionException e) {
+                sender.sendMessage("Error: Could not create ticket");
+                e.printStackTrace();
+                return;
+            }
+            sender.sendMessage("Created ticket #" + ticketID);
+        }).runTaskAsynchronously(plugin);
 
-        long ticketID;
-        try {
-            ticketID = ticketController.createTicket((Player) sender, new Date(), message);
-        } catch (IOException e) {
-            sender.sendMessage("Error: Could not create ticket");
-            e.printStackTrace();
-            return false;
-        }
-        sender.sendMessage("Created ticket #" + ticketID);
         return true;
     }
 

@@ -2,7 +2,6 @@ package com.tallcraft.githubtickets;
 
 import com.tallcraft.githubtickets.command.TicketCommand;
 import com.tallcraft.githubtickets.github.GitHubController;
-import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,32 +20,32 @@ public final class GithubTickets extends JavaPlugin {
 
     private FileConfiguration config;
 
-    public static void main(String[] args) {
-        try {
-            gitHubController.connect(args[0], args[1], args[2], args[3]);
-        } catch (IOException e) {
-            System.err.println("Error while connect to github ticket repo");
-            e.printStackTrace();
-            return;
-        }
-
-//
-//        Ticket ticket = new Ticket(new Date(), UUID.randomUUID(), "Steve", "Survival", "world", new Location(1, 2, 3), "Help, zombies!");
+//    public static void main(String[] args) {
 //        try {
-//            ticketController.createTicket(ticket);
+//            gitHubController.connect(args[0], args[1], args[2], args[3]);
 //        } catch (IOException e) {
-//            System.err.println("Error while creating ticket");
+//            System.err.println("Error while connect to github ticket repo");
+//            e.printStackTrace();
+//            return;
+//        }
+//
+////
+////        Ticket ticket = new Ticket(new Date(), UUID.randomUUID(), "Steve", "Survival", "world", new Location(1, 2, 3), "Help, zombies!");
+////        try {
+////            ticketController.createTicket(ticket);
+////        } catch (IOException e) {
+////            System.err.println("Error while creating ticket");
+////            e.printStackTrace();
+////        }
+//
+//        try {
+//            Ticket ticket = ticketController.getTicket(24);
+//            System.out.println("got ticket " + ticket);
+//        } catch (IOException e) {
+//            System.err.println("Error while getting ticket");
 //            e.printStackTrace();
 //        }
-
-        try {
-            Ticket ticket = ticketController.getTicket(24);
-            System.out.println("got ticket " + ticket);
-        } catch (IOException e) {
-            System.err.println("Error while getting ticket");
-            e.printStackTrace();
-        }
-    }
+//    }
 
 
     private boolean isUnset(String str) {
@@ -80,7 +79,7 @@ public final class GithubTickets extends JavaPlugin {
 
         try {
             // Connect to github repo
-            gitHubController.connect(user, password, repositoryUser, repositoryName);
+            gitHubController.connect(user, password, repositoryUser, repositoryName, this);
         } catch(IOException ex) {
             logger.info("Error while connecting to GitHub");
             ex.printStackTrace();
@@ -88,7 +87,7 @@ public final class GithubTickets extends JavaPlugin {
             return;
         }
         // Initialize and register commands
-        TicketCommand ticketCommand = new TicketCommand();
+        TicketCommand ticketCommand = new TicketCommand(this);
         this.getCommand("ticket").setExecutor(ticketCommand);
     }
 

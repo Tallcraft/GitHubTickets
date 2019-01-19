@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Future;
 
 /**
  * Interfaces between Bukkit plugin side and GitHub
@@ -41,7 +42,7 @@ public class TicketController {
      * @return Ticket ID
      * @throws IOException API error
      */
-    public long createTicket(Ticket ticket) throws IOException {
+    public Future<Integer> createTicket(Ticket ticket) throws IOException {
         if (serverName != null) ticket.setServerName(serverName);
         return githubController.createTicket(ticket);
     }
@@ -51,10 +52,10 @@ public class TicketController {
      * @param player Name of player who created the ticket
      * @param timestamp Time of ticket creation
      * @param message Ticket message
-     * @return Ticket ID
+     * @return Future with Ticket ID
      * @throws IOException API error
      */
-    public long createTicket(Player player, Date timestamp, String message) throws IOException {
+    public Future<Integer> createTicket(Player player, Date timestamp, String message) throws IOException {
         org.bukkit.Location l = player.getLocation();
         Location playerLocation = new Location(l.getBlockX(), l.getBlockY(), l.getBlockZ());
 
@@ -70,10 +71,10 @@ public class TicketController {
      * @param worldName Name of world ticket was created in
      * @param location Location ticket was created in
      * @param body Ticket text
-     * @return Ticket ID
+     * @return Future with Ticket ID
      * @throws IOException API error
      */
-    public long createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) throws IOException {
+    public Future<Integer> createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) throws IOException {
         // If server name is set in ticket controller overwrite server getter
         String serverNameOverride = this.serverName == null ? serverName : this.serverName;
         Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverNameOverride, worldName, location, body);
@@ -87,7 +88,7 @@ public class TicketController {
      * @return true on success, false on ticket not found
      * @throws IOException API Error
      */
-    public boolean openTicket(int id) throws IOException {
+    public Future<Boolean> openTicket(int id) throws IOException {
         return changeTicketStatus(id, true);
     }
 
@@ -98,7 +99,7 @@ public class TicketController {
      * @return true on success, false on ticket not found
      * @throws IOException API Error
      */
-    public boolean closeTicket(int id) throws IOException {
+    public Future<Boolean> closeTicket(int id) throws IOException {
         return changeTicketStatus(id, false);
     }
 
@@ -110,7 +111,7 @@ public class TicketController {
      * @return true on success, false on ticket not found
      * @throws IOException API Error
      */
-    public boolean changeTicketStatus(int id, boolean open) throws IOException {
+    public Future<Boolean> changeTicketStatus(int id, boolean open) throws IOException {
         return githubController.changeTicketStatus(id, open);
     }
 
@@ -120,11 +121,11 @@ public class TicketController {
      * @return Ticket matching id
      * @throws IOException API error
      */
-    public Ticket getTicket(int id) throws IOException {
+    public Future<Ticket> getTicket(int id) throws IOException {
         return githubController.getTicket(id);
     }
 
-    public List<Ticket> getOpenTickets() throws IOException {
+    public Future<List<Ticket>> getOpenTickets() throws IOException {
         return githubController.getOpenTickets();
     }
 }
