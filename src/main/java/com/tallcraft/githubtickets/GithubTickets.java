@@ -75,7 +75,6 @@ public final class GithubTickets extends JavaPlugin {
             return;
         }
 
-        // TODO: disable plugin if config values are empty / invalid
 
         try {
             // Connect to github repo

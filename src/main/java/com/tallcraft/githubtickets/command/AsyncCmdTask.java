@@ -2,6 +2,9 @@ package com.tallcraft.githubtickets.command;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
+/**
+ * Runs command task (Runnable) async
+ */
 public class AsyncCmdTask extends BukkitRunnable {
 
     private Runnable task;

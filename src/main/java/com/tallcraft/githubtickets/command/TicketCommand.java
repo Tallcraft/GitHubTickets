@@ -135,7 +135,6 @@ public class TicketCommand implements CommandExecutor {
         sender.spigot().sendMessage(builder.create());
     }
 
-    // TODO: async
     private boolean changeTicketStatus(CommandSender sender, String[] args, boolean open) {
         if (args.length < 2) return false;
 

@@ -21,7 +21,7 @@ class IssueConverter {
     private IssueConverter() {
     }
 
-    public static IssueConverter getInstance() {
+    static IssueConverter getInstance() {
         return ourInstance;
     }
 
@@ -35,7 +35,6 @@ class IssueConverter {
      * @return Extracted value
      */
     private static String getValue(Issue issue, String key) {
-        // TODO: handle exception
         Pattern pattern = Pattern.compile(key + ": (.*)");
         Matcher matcher = pattern.matcher(issue.getBody());
 
@@ -97,7 +96,7 @@ class IssueConverter {
             try {
                 ticket.setPlayerUUID(UUID.fromString(uuid));
             } catch (IllegalArgumentException ex) {
-                // TODO display console error message? throw up in stack until reached mc component?
+                ex.printStackTrace();
             }
         }
 

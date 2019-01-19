@@ -5,6 +5,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Works on api tasks while respecting api limits
+ */
 public class ApiWorker extends BukkitRunnable {
 
     private LinkedBlockingQueue<Runnable> tasks;

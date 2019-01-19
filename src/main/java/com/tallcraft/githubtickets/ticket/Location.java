@@ -13,7 +13,7 @@ public class Location {
 
     private static Pattern pattern = Pattern.compile("(\\S+), (\\S+), (\\S+)");
 
-    public Location(double x, double y, double z) {
+    Location(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;
