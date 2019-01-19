@@ -28,7 +28,6 @@ public class ApiWorker extends BukkitRunnable {
     public void run() {
         // TODO: shutdown flag?
         while (true) {
-            System.out.println("ApiWorker loop call");
             try {
                 Runnable task = tasks.poll(1, TimeUnit.DAYS);
                 if (task != null) task.run();
