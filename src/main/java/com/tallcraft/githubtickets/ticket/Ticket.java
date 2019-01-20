@@ -67,14 +67,14 @@ public class Ticket {
      * @param body       Ticket body text
      */
     public Ticket(int id, boolean isOpen, Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
-        this.id = id;
-        this.isOpen = isOpen;
-        this.timestamp = timestamp;
-        this.playerUUID = playerUUID;
+        setId(id);
+        setOpen(isOpen);
+        setTimestamp(timestamp);
+        setPlayerUUID(playerUUID);
         setPlayerName(playerName);
-        this.serverName = serverName;
-        this.worldName = worldName;
-        this.location = location;
+        setServerName(serverName);
+        setWorldName(worldName);
+        setLocation(location);
         setBody(body);
 
         this.comments = new LinkedList<>();
@@ -153,6 +153,7 @@ public class Ticket {
     }
 
     public void setServerName(String serverName) {
+        if (serverName == null) throw new IllegalArgumentException("serverName must not be null");
         this.serverName = serverName;
     }
 
@@ -161,6 +162,7 @@ public class Ticket {
     }
 
     public void setTimestamp(Date timestamp) {
+        if (timestamp == null) throw new IllegalArgumentException("timestamp must not be null");
         this.timestamp = timestamp;
     }
 
@@ -169,6 +171,7 @@ public class Ticket {
     }
 
     public void setPlayerUUID(UUID playerUUID) {
+        if (playerUUID == null) throw new IllegalArgumentException("playerUUID must not be null");
         this.playerUUID = playerUUID;
     }
 
@@ -177,7 +180,7 @@ public class Ticket {
     }
 
     public void setPlayerName(String playerName) {
-        if (playerName == null) playerName = "INVALID";
+        if (playerName == null) throw new IllegalArgumentException("playerName must not be null");
         this.playerName = playerName;
     }
 
@@ -186,6 +189,7 @@ public class Ticket {
     }
 
     public void setWorldName(String worldName) {
+        if (worldName == null) throw new IllegalArgumentException("worldName must not be null");
         this.worldName = worldName;
     }
 
@@ -194,6 +198,7 @@ public class Ticket {
     }
 
     public void setLocation(Location location) {
+        if (location == null) throw new IllegalArgumentException("location must not be null");
         this.location = location;
     }
 
@@ -218,7 +223,7 @@ public class Ticket {
     }
 
     public void setBody(String body) {
-        if (body == null) body = "INVALID";
+        if (body == null) throw new IllegalArgumentException("body must not be null");
         this.body = body;
     }
 

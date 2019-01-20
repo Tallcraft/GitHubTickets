@@ -85,26 +85,30 @@ class IssueConverter {
     Ticket issueToTicket(Issue issue) {
         Ticket ticket = new Ticket();
 
-        ticket.setId(issue.getNumber());
-        ticket.setOpen(issue.getState().equals(IssueService.STATE_OPEN));
-        ticket.setTimestamp(issue.getCreatedAt());
+        try {
+            ticket.setId(issue.getNumber());
+            ticket.setOpen(issue.getState().equals(IssueService.STATE_OPEN));
+            ticket.setTimestamp(issue.getCreatedAt());
 
-        String uuid = getValue(issue, "UUID");
+            String uuid = getValue(issue, "UUID");
 
-        if (uuid != null) {
-            try {
-                ticket.setPlayerUUID(UUID.fromString(uuid));
-            } catch (IllegalArgumentException ex) {
-                ex.printStackTrace();
+            if (uuid != null) {
+                try {
+                    ticket.setPlayerUUID(UUID.fromString(uuid));
+                } catch (IllegalArgumentException ex) {
+                    ex.printStackTrace();
+                }
             }
+
+            ticket.setPlayerName(getValue(issue, "Player"));
+            ticket.setServerName(getValue(issue, "Server"));
+            ticket.setWorldName(getValue(issue, "World"));
+            ticket.setLocation(Location.fromString(getValue(issue, "Location")));
+            ticket.setBody(getTicketBody(issue));
+        } catch (IllegalArgumentException ex) {
+            // Error while parsing ticket
+            return null;
         }
-
-        ticket.setPlayerName(getValue(issue, "Player"));
-        ticket.setServerName(getValue(issue, "Server"));
-        ticket.setWorldName(getValue(issue, "World"));
-        ticket.setLocation(Location.fromString(getValue(issue, "Location")));
-        ticket.setBody(getTicketBody(issue));
-
         return ticket;
     }
 
@@ -117,7 +121,8 @@ class IssueConverter {
     List<Ticket> issueToTicket(Collection<Issue> issues) {
         List<Ticket> tickets = new LinkedList<>();
         for (Issue issue : issues) {
-            tickets.add(issueToTicket(issue));
+            Ticket ticket = issueToTicket(issue);
+            if (ticket != null) tickets.add(ticket);
         }
         return tickets;
     }

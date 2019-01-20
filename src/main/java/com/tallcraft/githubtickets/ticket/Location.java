@@ -29,6 +29,8 @@ public class Location {
      * @return Location object from string data
      */
     public static Location fromString(String str) {
+        if (str == null) throw new IllegalArgumentException("str must not be null");
+
         Matcher matcher = pattern.matcher(str);
         if (matcher.find()) {
             return new Location(matcher.group(1), matcher.group(2), matcher.group(3));
