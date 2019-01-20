@@ -14,17 +14,15 @@ import java.util.concurrent.Future;
  * Interfaces between Bukkit plugin side and GitHub
  */
 public class TicketController {
-    private static TicketController ourInstance = new TicketController();
-
-    public static TicketController getInstance() {
-        return ourInstance;
-    }
-
     private static final GitHubController githubController = GitHubController.getInstance();
-
+    private static TicketController ourInstance = new TicketController();
     private String serverName;
 
     private TicketController() {
+    }
+
+    public static TicketController getInstance() {
+        return ourInstance;
     }
 
     /**

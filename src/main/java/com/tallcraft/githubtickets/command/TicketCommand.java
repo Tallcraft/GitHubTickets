@@ -25,10 +25,8 @@ import java.util.stream.Collectors;
 public class TicketCommand implements CommandExecutor {
 
     private static final TicketController ticketController = TicketController.getInstance();
-
-    private GithubTickets plugin;
-
     private static final BaseComponent[] ticketListHeading = new ComponentBuilder("Tickets >>>>>>").color(ChatColor.GOLD).bold(true).create();
+    private GithubTickets plugin;
 
     // TODO: for all async / rate limited calls: list of players, add to it if player called something, remove it when result is there. this prevents multiple ongoing calls by player
 

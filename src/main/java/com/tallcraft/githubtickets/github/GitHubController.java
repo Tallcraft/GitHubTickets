@@ -22,22 +22,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class GitHubController {
     private static GitHubController ourInstance = new GitHubController();
     private static IssueConverter issueConverter = IssueConverter.getInstance();
-
-    public static GitHubController getInstance() {
-        return ourInstance;
-    }
-
-
     private GitHubClient client;
     private RepositoryService repService;
     private IssueService issueService;
     private Repository repository;
-
     // Boolean to store current connection state to api
     private boolean isConnected = false;
-
     private LinkedBlockingQueue<Runnable> apiTasks = new LinkedBlockingQueue<>();
     private final ApiWorker apiWorker = new ApiWorker(apiTasks);
+
+    public static GitHubController getInstance() {
+        return ourInstance;
+    }
 
     /**
      * Connect to GitHub API

@@ -13,11 +13,9 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 public final class GithubTickets extends JavaPlugin {
-    private final Logger logger = Logger.getLogger(this.getName());
-
     private static final GitHubController gitHubController = GitHubController.getInstance();
     private static final TicketController ticketController = TicketController.getInstance();
-
+    private final Logger logger = Logger.getLogger(this.getName());
     private FileConfiguration config;
 
     private boolean isUnset(String str) {
@@ -41,7 +39,7 @@ public final class GithubTickets extends JavaPlugin {
             ticketController.setServerName(serverName);
         }
 
-        if(isUnset(user) || isUnset(password) || isUnset(repositoryUser) || isUnset(repositoryName)) {
+        if (isUnset(user) || isUnset(password) || isUnset(repositoryUser) || isUnset(repositoryName)) {
             logger.info("Missing GitHub configuration. Please add it in config.yml. Disabling.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -51,7 +49,7 @@ public final class GithubTickets extends JavaPlugin {
         try {
             // Connect to github repo
             gitHubController.connect(user, password, repositoryUser, repositoryName, this);
-        } catch(IOException ex) {
+        } catch (IOException ex) {
             logger.info("Error while connecting to GitHub");
             ex.printStackTrace();
             Bukkit.getPluginManager().disablePlugin(this);

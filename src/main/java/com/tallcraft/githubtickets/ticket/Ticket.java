@@ -11,16 +11,15 @@ import java.util.*;
 
 public class Ticket {
 
+    // Variable passed to append to reset formatting / events
+    private static final ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
+    private static final int ticketListTextLength = 60;
     // format locale and color settings
     private static Locale locale = new Locale("en", "US");
     private static DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
     private static ChatColor chatKeyColor = ChatColor.GOLD;
     private static ChatColor ticketOpenColor = ChatColor.DARK_GREEN;
     private static ChatColor ticketClosedColor = ChatColor.DARK_RED;
-    // Variable passed to append to reset formatting / events
-    private static final ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
-    private static final int ticketListTextLength = 60;
-
     // Meta
     private Date timestamp;
     private UUID playerUUID;
@@ -79,6 +78,46 @@ public class Ticket {
         this.body = body;
 
         this.comments = new LinkedList<>();
+    }
+
+    /**
+     * Convert list of tickets to formatted message for MC chat
+     *
+     * @param tickets list of tickets
+     * @return BaseComponent holding ticket list as mc chat message
+     */
+    public static BaseComponent[] ticketListToChat(List<Ticket> tickets) {
+        ComponentBuilder builder = new ComponentBuilder("");
+
+        for (Ticket ticket : tickets) {
+
+            // Hover text: Playername and ticket body
+            ComponentBuilder ticketHoverText = new ComponentBuilder("").append("Ticket #" + ticket.getId() + "\n").color(chatKeyColor).append(ticket.getPlayerName(), f).bold(true).append("\n").append(ticket.getBody(), f).append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
+            HoverEvent ticketHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, ticketHoverText.create());
+            ClickEvent ticketClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket show " + ticket.getId());
+
+            // Ticket ID
+            builder.append(Integer.toString(ticket.getId()), f).bold(true).color(chatKeyColor).event(ticketHover).event(ticketClick);
+
+            // Ticket body
+            // Limit ticket body for list view
+            String ticketBody = ticket.getBody();
+            String ticketPlayer = ticket.getPlayerName();
+
+            // Calculate length of list entry, constant is extra space
+            int entryLength = ticketBody.length() + ticketPlayer.length() + Integer.toString(ticket.getId()).length() + 1;
+            int delta = ticketListTextLength - entryLength;
+
+            // We have to cut because entryLength is too long
+            if (delta < 0) {
+                int lastIndex = ticketBody.length() + delta - 4;
+                if (lastIndex < 0) lastIndex = 0;
+                ticketBody = ticketBody.substring(0, lastIndex) + " ...";
+            }
+            builder.append(" " + ticketPlayer + ": ", f).color(chatKeyColor).event(ticketHover).event(ticketClick);
+            builder.append(ticketBody, f).event(ticketHover).event(ticketClick).append("\n");
+        }
+        return builder.create();
     }
 
     public String getServerName() {
@@ -173,46 +212,6 @@ public class Ticket {
      */
     private String isOpenString() {
         return isOpen ? "OPEN" : "CLOSED";
-    }
-
-    /**
-     * Convert list of tickets to formatted message for MC chat
-     *
-     * @param tickets list of tickets
-     * @return BaseComponent holding ticket list as mc chat message
-     */
-    public static BaseComponent[] ticketListToChat(List<Ticket> tickets) {
-        ComponentBuilder builder = new ComponentBuilder("");
-
-        for (Ticket ticket : tickets) {
-
-            // Hover text: Playername and ticket body
-            ComponentBuilder ticketHoverText = new ComponentBuilder("").append("Ticket #" + ticket.getId() + "\n").color(chatKeyColor).append(ticket.getPlayerName(), f).bold(true).append("\n").append(ticket.getBody(), f).append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
-            HoverEvent ticketHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, ticketHoverText.create());
-            ClickEvent ticketClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket show " + ticket.getId());
-
-            // Ticket ID
-            builder.append(Integer.toString(ticket.getId()), f).bold(true).color(chatKeyColor).event(ticketHover).event(ticketClick);
-
-            // Ticket body
-            // Limit ticket body for list view
-            String ticketBody = ticket.getBody();
-            String ticketPlayer = ticket.getPlayerName();
-
-            // Calculate length of list entry, constant is extra space
-            int entryLength = ticketBody.length() + ticketPlayer.length() + Integer.toString(ticket.getId()).length() + 1;
-            int delta = ticketListTextLength - entryLength;
-
-            // We have to cut because entryLength is too long
-            if (delta < 0) {
-                int lastIndex = ticketBody.length() + delta - 4;
-                if (lastIndex < 0) lastIndex = 0;
-                ticketBody = ticketBody.substring(0, lastIndex) + " ...";
-            }
-            builder.append(" " + ticketPlayer + ": ", f).color(chatKeyColor).event(ticketHover).event(ticketClick);
-            builder.append(ticketBody, f).event(ticketHover).event(ticketClick).append("\n");
-        }
-        return builder.create();
     }
 
     /**

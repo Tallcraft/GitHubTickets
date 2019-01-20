@@ -17,6 +17,7 @@ class IssueConverter {
     // Max github issue title length
     private static final int maxTitleLength = 50;
     private static IssueConverter ourInstance = new IssueConverter();
+    private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*)", Pattern.DOTALL);
 
     private IssueConverter() {
     }
@@ -24,8 +25,6 @@ class IssueConverter {
     static IssueConverter getInstance() {
         return ourInstance;
     }
-
-    private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*)", Pattern.DOTALL);
 
     /**
      * Get value from issue body

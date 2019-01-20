@@ -7,11 +7,10 @@ import java.util.regex.Pattern;
  * Intermediate location class (Bukkit / GitHub agnostic)
  */
 public class Location {
+    private static Pattern pattern = Pattern.compile("(\\S+), (\\S+), (\\S+)");
     private double x;
     private double y;
     private double z;
-
-    private static Pattern pattern = Pattern.compile("(\\S+), (\\S+), (\\S+)");
 
     Location(double x, double y, double z) {
         this.x = x;
@@ -21,6 +20,20 @@ public class Location {
 
     private Location(String x, String y, String z) {
         this(Double.parseDouble(x), Double.parseDouble(y), Double.parseDouble(z));
+    }
+
+    /**
+     * Construct Location object from comma separated string
+     *
+     * @param str comma separated string, e.g. 1.0, 2.0, 3.0
+     * @return Location object from string data
+     */
+    public static Location fromString(String str) {
+        Matcher matcher = pattern.matcher(str);
+        if (matcher.find()) {
+            return new Location(matcher.group(1), matcher.group(2), matcher.group(3));
+        }
+        return null;
     }
 
     public double getX() {
@@ -50,19 +63,5 @@ public class Location {
     @Override
     public String toString() {
         return this.x + ", " + this.y + ", " + this.z;
-    }
-
-    /**
-     * Construct Location object from comma separated string
-     *
-     * @param str comma separated string, e.g. 1.0, 2.0, 3.0
-     * @return Location object from string data
-     */
-    public static Location fromString(String str) {
-        Matcher matcher = pattern.matcher(str);
-        if (matcher.find()) {
-            return new Location(matcher.group(1), matcher.group(2), matcher.group(3));
-        }
-        return null;
     }
 }
