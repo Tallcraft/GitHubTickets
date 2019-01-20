@@ -22,7 +22,7 @@ permissions:
       githubtickets.create: true
       githubtickets.show.self: true
       githubtickets.show.all: true
-      githubticket.tp: true
+      githubtickets.tp: true
       githubtickets.list: true
       githubtickets.close.self: true
       githubtickets.close.all: true
