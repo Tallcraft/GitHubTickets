@@ -3,7 +3,63 @@ version: ${project.version}
 main: com.tallcraft.githubtickets.GithubTickets
 api-version: 1.13
 authors: [Tallcraft]
+website: https://tallcraft.com
 description: Ticket System based on GitHub Issues
 commands:
   ticket:
     description: Create and manage tickets
+    permission-message: You don't have permission.
+permissions:
+  githubtickets.*:
+    description: Gives access to all GitHubTickets commands
+    default: false
+    children:
+      githubtickets.all: true
+  githubtickets.all:
+    description: Gives access to all GitHubTicket commands
+    default: op
+    children:
+      githubtickets.create: true
+      githubtickets.show.self: true
+      githubtickets.show.all: true
+      githubticket.tp: true
+      githubtickets.list: true
+      githubtickets.close.self: true
+      githubtickets.close.all: true
+      githubtickets.reopen.self: true
+      githubtickets.reopen.all: true
+  githubtickets.staff:
+    description: Gives access to typical staff ticket commands
+    default: false
+    children:
+      githubtickets.show.all: true
+      githubtickets.tp: true
+      githubtickets.list: true
+      githubtickets.close.all: true
+      githubtickets.reopen.all: true
+  githubtickets.create:
+    description: Create tickets
+    default: true
+  githubtickets.show.self:
+    description: Show detailed ticket info for self created tickets
+    default: true
+  githubtickets.show.all:
+    description: Show detailed ticket info for all tickets
+    default: false
+  githubtickets.tp:
+    description: Teleport to ticket locations
+    default: false
+  githubtickets.list:
+    description: Show list of tickets
+    default: false
+  githubtickets.close.self:
+    description: Close own tickets
+    default: true
+  githubtickets.close.all:
+    description: Close all tickets
+    default: false
+  githubtickets.reopen.self:
+    description: Reopen own tickets
+    default: true
+  githubtickets.reopen.all:
+    description: Reopen all tickets

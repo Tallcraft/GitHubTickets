@@ -30,12 +30,33 @@ public class TicketCommand implements CommandExecutor {
 
     private static final BaseComponent[] ticketListHeading = new ComponentBuilder("Tickets >>>>>>").color(ChatColor.GOLD).bold(true).create();
 
-    // TODO: Permission checks
     // TODO: for all async / rate limited calls: list of players, add to it if player called something, remove it when result is there. this prevents multiple ongoing calls by player
-
 
     public TicketCommand(GithubTickets plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Test if user has permission with githubtickets prefix
+     *
+     * @param sender Sender to test permission for
+     * @param perm   Permission suffix to test
+     * @return true if sender has permission, false otherwise
+     */
+    private boolean hasPerm(CommandSender sender, String perm) {
+        return sender.hasPermission("githubtickets." + perm);
+    }
+
+    /**
+     * Send no permission message to sender
+     *
+     * @param sender  Sender to send no permission msg to
+     * @param command called command
+     * @return true for main command method
+     */
+    private boolean noPerm(CommandSender sender, Command command) {
+        sender.sendMessage(command.getPermissionMessage());
+        return true;
     }
 
     /**
@@ -65,21 +86,32 @@ public class TicketCommand implements CommandExecutor {
         // Assign to handling methods
         switch (args[0].toLowerCase()) {
             case "show":
-                validSyntax = showTicket(sender, args);
+                if (!hasPerm(sender, "show.self") && !hasPerm(sender, "show.all"))
+                    return noPerm(sender, command);
+                validSyntax = showTicket(sender, command, args);
                 break;
             case "tp":
+                if (!hasPerm(sender, "tp")) return noPerm(sender, command);
                 validSyntax = teleportTicket(sender, args);
                 break;
             case "create":
+                if (!hasPerm(sender, "create")) return noPerm(sender, command);
                 validSyntax = createTicket(sender, args);
                 break;
             case "list":
+                if (!hasPerm(sender, "list")) return noPerm(sender, command);
                 validSyntax = showTicketList(sender, args);
                 break;
             case "close":
+                // TODO: support self permission
+                if (/*!hasPerm(sender, "close.self") &&*/ !hasPerm(sender, "close.all"))
+                    return noPerm(sender, command);
                 validSyntax = changeTicketStatus(sender, args, false);
                 break;
             case "reopen":
+                // TODO: support self permission
+                if (/*!hasPerm(sender, "reopen.self") && */!hasPerm(sender, "reopen.all"))
+                    return noPerm(sender, command);
                 validSyntax = changeTicketStatus(sender, args, true);
                 break;
         }
@@ -104,37 +136,55 @@ public class TicketCommand implements CommandExecutor {
 
         String baseCmd = "/" + label;
 
-        // TODO: check if any permission, otherwise return empty
         builder.append("Commands >>>>>>").color(ChatColor.GOLD).bold(true).append("\n");
 
-        // TODO: permission check. Only show to players with permission
-        builder.append(baseCmd + " create <Message>", f).color(ChatColor.GOLD)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket create "));
-        builder.append(" Create a ticket", f).append("\n");
+        if (hasPerm(sender, "create")) {
+            builder.append(baseCmd + " create <Message>", f).color(ChatColor.GOLD)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket create "));
+            builder.append(" Create a ticket", f).append("\n");
+        }
 
-        builder.append(baseCmd + " list", f).color(ChatColor.GOLD)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket list"));
-        builder.append(" List open tickets", f).append("\n");
+        if (hasPerm(sender, "list")) {
+            builder.append(baseCmd + " list", f).color(ChatColor.GOLD)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket list"));
+            builder.append(" List open tickets", f).append("\n");
+        }
 
-        builder.append(baseCmd + " show <ID>", f).color(ChatColor.GOLD)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket show "));
-        builder.append(" Show ticket details", f).append("\n");
+        if (hasPerm(sender, "show.self") || hasPerm(sender, "show.all")) {
+            builder.append(baseCmd + " show <ID>", f).color(ChatColor.GOLD)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket show "));
+            builder.append(" Show ticket details", f).append("\n");
+        }
 
-        builder.append(baseCmd + " tp <ID>", f).color(ChatColor.GOLD)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket tp "));
-        builder.append(" Teleport to ticket location", f).append("\n");
+        if (hasPerm(sender, "tp")) {
+            builder.append(baseCmd + " tp <ID>", f).color(ChatColor.GOLD)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket tp "));
+            builder.append(" Teleport to ticket location", f).append("\n");
+        }
 
-        builder.append(baseCmd + " close <ID>", f).color(ChatColor.GOLD)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket close "));
-        builder.append(" Close Ticket", f).append("\n");
+        if (hasPerm(sender, "close.self") || hasPerm(sender, "close.all")) {
+            builder.append(baseCmd + " close <ID>", f).color(ChatColor.GOLD)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket close "));
+            builder.append(" Close Ticket", f).append("\n");
+        }
 
-        builder.append(baseCmd + " reopen <ID>", f).color(ChatColor.GOLD)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket reopen "));
-        builder.append(" Re-open Ticket", f).append("\n");
+        if (hasPerm(sender, "reopen.self") || hasPerm(sender, "reopen.all")) {
+            builder.append(baseCmd + " reopen <ID>", f).color(ChatColor.GOLD)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket reopen "));
+            builder.append(" Re-open Ticket", f).append("\n");
+        }
 
         sender.spigot().sendMessage(builder.create());
     }
 
+    /**
+     * Update ticket status to open or closed
+     *
+     * @param sender command sender
+     * @param args   Passed command arguments
+     * @param open
+     * @return true if a valid command, otherwise false
+     */
     private boolean changeTicketStatus(CommandSender sender, String[] args, boolean open) {
         if (args.length < 2) return false;
 
@@ -172,7 +222,7 @@ public class TicketCommand implements CommandExecutor {
      * @param args   command arguments
      * @return true on valid syntax, false otherwise
      */
-    private boolean showTicket(CommandSender sender, String[] args) {
+    private boolean showTicket(CommandSender sender, Command command, String[] args) {
         if (args.length < 2) return false;
 
         int id;
@@ -191,10 +241,18 @@ public class TicketCommand implements CommandExecutor {
                 Ticket ticket = ticketController.getTicket(id).get();
                 if (ticket == null) {
                     sender.sendMessage("Ticket not found.");
-                } else {
+                    return;
+                }
+                // Check if player has permission to show specific ticket (own vs all perm)
+                if (hasPerm(sender, "show.all")
+                        || !(sender instanceof Player)
+                        || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
                     sender.spigot().sendMessage(ticket.toChat());
                     sender.sendMessage("");
+                } else {
+                    noPerm(sender, command);
                 }
+
             } catch (IOException | InterruptedException | ExecutionException e) {
                 sender.sendMessage("Error while getting ticket");
                 e.printStackTrace();

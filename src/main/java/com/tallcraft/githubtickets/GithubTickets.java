@@ -20,34 +20,6 @@ public final class GithubTickets extends JavaPlugin {
 
     private FileConfiguration config;
 
-//    public static void main(String[] args) {
-//        try {
-//            gitHubController.connect(args[0], args[1], args[2], args[3]);
-//        } catch (IOException e) {
-//            System.err.println("Error while connect to github ticket repo");
-//            e.printStackTrace();
-//            return;
-//        }
-//
-////
-////        Ticket ticket = new Ticket(new Date(), UUID.randomUUID(), "Steve", "Survival", "world", new Location(1, 2, 3), "Help, zombies!");
-////        try {
-////            ticketController.createTicket(ticket);
-////        } catch (IOException e) {
-////            System.err.println("Error while creating ticket");
-////            e.printStackTrace();
-////        }
-//
-//        try {
-//            Ticket ticket = ticketController.getTicket(24);
-//            System.out.println("got ticket " + ticket);
-//        } catch (IOException e) {
-//            System.err.println("Error while getting ticket");
-//            e.printStackTrace();
-//        }
-//    }
-
-
     private boolean isUnset(String str) {
         return str == null || str.isEmpty();
     }
