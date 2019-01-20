@@ -38,6 +38,7 @@ public class TicketController {
 
     /**
      * Create Ticket
+     *
      * @param ticket Ticket Object
      * @return Ticket ID
      * @throws IOException API error
@@ -49,9 +50,10 @@ public class TicketController {
 
     /**
      * Create Ticket
-     * @param player Name of player who created the ticket
+     *
+     * @param player    Name of player who created the ticket
      * @param timestamp Time of ticket creation
-     * @param message Ticket message
+     * @param message   Ticket message
      * @return Future with Ticket ID
      * @throws IOException API error
      */
@@ -64,13 +66,14 @@ public class TicketController {
 
     /**
      * Create Ticket
-     * @param timestamp Time of ticket creation
+     *
+     * @param timestamp  Time of ticket creation
      * @param playerUUID Unique identifier of player who created ticket
      * @param playerName Name of player who created the ticket
      * @param serverName Name of server where ticket was created
-     * @param worldName Name of world ticket was created in
-     * @param location Location ticket was created in
-     * @param body Ticket text
+     * @param worldName  Name of world ticket was created in
+     * @param location   Location ticket was created in
+     * @param body       Ticket text
      * @return Future with Ticket ID
      * @throws IOException API error
      */
@@ -85,10 +88,9 @@ public class TicketController {
      * Open Ticket
      *
      * @param id Ticket ID
-     * @return true on success, false on ticket not found
-     * @throws IOException API Error
+     * @return ticket object modified, or null if not found
      */
-    public Future<Boolean> openTicket(int id) throws IOException {
+    public Future<Ticket> openTicket(int id) {
         return changeTicketStatus(id, true);
     }
 
@@ -96,10 +98,9 @@ public class TicketController {
      * Close Ticket
      *
      * @param id Ticket ID
-     * @return true on success, false on ticket not found
-     * @throws IOException API Error
+     * @return ticket object modified, or null if not found
      */
-    public Future<Boolean> closeTicket(int id) throws IOException {
+    public Future<Ticket> closeTicket(int id) {
         return changeTicketStatus(id, false);
     }
 
@@ -108,15 +109,15 @@ public class TicketController {
      *
      * @param id   Ticket ID
      * @param open true = open, false = closed
-     * @return true on success, false on ticket not found
-     * @throws IOException API Error
+     * @return ticket object modified, or null if not found
      */
-    public Future<Boolean> changeTicketStatus(int id, boolean open) throws IOException {
+    public Future<Ticket> changeTicketStatus(int id, boolean open) {
         return githubController.changeTicketStatus(id, open);
     }
 
     /**
      * Get Ticket by ID
+     *
      * @param id ticket id to query for.
      * @return Ticket matching id
      * @throws IOException API error
@@ -125,7 +126,7 @@ public class TicketController {
         return githubController.getTicket(id);
     }
 
-    public Future<List<Ticket>> getOpenTickets() throws IOException {
+    public Future<List<Ticket>> getOpenTickets() {
         return githubController.getOpenTickets();
     }
 }

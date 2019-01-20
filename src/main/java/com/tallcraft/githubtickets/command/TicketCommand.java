@@ -103,16 +103,14 @@ public class TicketCommand implements CommandExecutor {
                 validSyntax = showTicketList(sender, args);
                 break;
             case "close":
-                // TODO: support self permission
-                if (/*!hasPerm(sender, "close.self") &&*/ !hasPerm(sender, "close.all"))
+                if (!hasPerm(sender, "close.self") && !hasPerm(sender, "close.all"))
                     return noPerm(sender, command);
-                validSyntax = changeTicketStatus(sender, args, false);
+                validSyntax = changeTicketStatus(sender, command, args, false);
                 break;
             case "reopen":
-                // TODO: support self permission
-                if (/*!hasPerm(sender, "reopen.self") && */!hasPerm(sender, "reopen.all"))
+                if (!hasPerm(sender, "reopen.self") && !hasPerm(sender, "reopen.all"))
                     return noPerm(sender, command);
-                validSyntax = changeTicketStatus(sender, args, true);
+                validSyntax = changeTicketStatus(sender, command, args, true);
                 break;
         }
 
@@ -182,10 +180,10 @@ public class TicketCommand implements CommandExecutor {
      *
      * @param sender command sender
      * @param args   Passed command arguments
-     * @param open
+     * @param open   true = open ticket, false = close ticket
      * @return true if a valid command, otherwise false
      */
-    private boolean changeTicketStatus(CommandSender sender, String[] args, boolean open) {
+    private boolean changeTicketStatus(CommandSender sender, Command command, String[] args, boolean open) {
         if (args.length < 2) return false;
 
         int id;
@@ -201,12 +199,21 @@ public class TicketCommand implements CommandExecutor {
         new AsyncCmdTask(() -> {
 
             try {
-                if (ticketController.changeTicketStatus(id, open).get()) {
+                Ticket ticket = ticketController.changeTicketStatus(id, open).get();
+                if (ticket == null) {
+                    sender.sendMessage("Ticket not found.");
+                    return;
+                }
+                if (hasPerm(sender, "close.all") || hasPerm(sender, "reopen.all")
+                        || !(sender instanceof Player)
+                        || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
                     sender.sendMessage("Ticket #" + id + " " + (open ? "reopened" : "closed") + ".");
                 } else {
-                    sender.sendMessage("Ticket not found.");
+                    noPerm(sender, command);
                 }
-            } catch (IOException | InterruptedException | ExecutionException e) {
+
+
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
                 sender.sendMessage("Error while changing ticket state");
             }
@@ -275,7 +282,7 @@ public class TicketCommand implements CommandExecutor {
                 ticketList = ticketController.getOpenTickets().get();
                 sender.spigot().sendMessage(ticketListHeading);
                 sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
-            } catch (IOException | InterruptedException | ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 sender.sendMessage("Error while getting ticket list");
                 e.printStackTrace();
             }

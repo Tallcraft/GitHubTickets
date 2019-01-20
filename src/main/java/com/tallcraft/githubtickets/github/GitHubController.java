@@ -155,8 +155,8 @@ public class GitHubController {
      * @param open true = open, false = closed
      * @return true on success, false on ticket not found
      */
-    public Future<Boolean> changeTicketStatus(int id, boolean open) {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
+    public Future<Ticket> changeTicketStatus(int id, boolean open) {
+        CompletableFuture<Ticket> future = new CompletableFuture<>();
         // Create async task
         Runnable task = () -> {
             try {
@@ -177,23 +177,25 @@ public class GitHubController {
      *
      * @param id   Ticket ID
      * @param open true = open, false = closed
-     * @return true on success, false on ticket not found
+     * @return Ticket object which status was changed or null if ticket not found by id
      * @throws IOException API error
      */
-    private boolean changeTicketStatusSync(int id, boolean open) throws IOException {
+    private Ticket changeTicketStatusSync(int id, boolean open) throws IOException {
         Issue issue;
         try {
             issue = issueService.getIssue(repository, id);
         } catch (RequestException ex) {
             // Don't throw not found exceptions, but return null issue
             if (ex.getStatus() == 404) {
-                return false;
+                return null;
             }
             throw ex;
         }
 
-        changeTicketStatus(issue, open);
-        return true;
+        // Change status of github issue and get updated issue object
+        issue = changeTicketStatus(issue, open);
+        // Convert issue object to ticket and return
+        return issueConverter.issueToTicket(issue);
     }
 
 
@@ -219,7 +221,7 @@ public class GitHubController {
 
 
     /**
-     * Get GitHub issue by id
+     * Get Ticket by id
      *
      * @param id ID to query for
      * @return Ticket representation of GitHub issue with matching ID
@@ -246,11 +248,18 @@ public class GitHubController {
      * @param open  true = open, false = closed
      * @throws IOException API error
      */
-    private void changeTicketStatus(Issue issue, boolean open) throws IOException {
+    private Issue changeTicketStatus(Issue issue, boolean open) throws IOException {
         issue.setState(open ? IssueService.STATE_OPEN : IssueService.STATE_CLOSED);
-        issueService.editIssue(repository, issue);
+        return issueService.editIssue(repository, issue);
     }
 
+
+    /**
+     * Get a list of open tickets
+     *
+     * @return list of tickets with state open
+     * @throws IOException API error
+     */
     private List<Ticket> getOpenTicketsSync() throws IOException {
         Map<String, String> issueFilters = Map.of(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
         List<Issue> issues = issueService.getIssues(repository, issueFilters);
