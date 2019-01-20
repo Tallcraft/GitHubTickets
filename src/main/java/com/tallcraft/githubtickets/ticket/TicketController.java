@@ -6,10 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -159,13 +156,14 @@ public class TicketController {
     }
 
     /**
-     * Get a list of open tickets from cache
+     * Get a list of open tickets from cache sorted by id
      *
      * @return List of open tickets
      */
     public List<Ticket> getOpenTickets() {
         return tickets.values().stream()
                 .filter(Ticket::isOpen)
+                .sorted(Comparator.comparing(Ticket::getId).reversed())
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 }
