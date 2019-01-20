@@ -55,6 +55,10 @@ public final class GithubTickets extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
+
+        // Initialize ticket controller
+        ticketController.init(this);
+
         // Initialize and register commands
         TicketCommand ticketCommand = new TicketCommand(this);
         this.getCommand("ticket").setExecutor(ticketCommand);

@@ -71,11 +71,11 @@ public class Ticket {
         this.isOpen = isOpen;
         this.timestamp = timestamp;
         this.playerUUID = playerUUID;
-        this.playerName = playerName;
+        setPlayerName(playerName);
         this.serverName = serverName;
         this.worldName = worldName;
         this.location = location;
-        this.body = body;
+        setBody(body);
 
         this.comments = new LinkedList<>();
     }
@@ -92,17 +92,23 @@ public class Ticket {
         for (Ticket ticket : tickets) {
 
             // Hover text: Playername and ticket body
-            ComponentBuilder ticketHoverText = new ComponentBuilder("").append("Ticket #" + ticket.getId() + "\n").color(chatKeyColor).append(ticket.getPlayerName(), f).bold(true).append("\n").append(ticket.getBody(), f).append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
-            HoverEvent ticketHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, ticketHoverText.create());
-            ClickEvent ticketClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket show " + ticket.getId());
+
+            HoverEvent ticketHover = ticket.getTicketListHoverEvent();
+            ClickEvent ticketClick = ticket.getTicketListClickEvent();
 
             // Ticket ID
-            builder.append(Integer.toString(ticket.getId()), f).bold(true).color(chatKeyColor).event(ticketHover).event(ticketClick);
+            builder.append(Integer.toString(ticket.getId()), f)
+                    .bold(true).color(chatKeyColor)
+                    .event(ticketHover)
+                    .event(ticketClick);
 
             // Ticket body
             // Limit ticket body for list view
             String ticketBody = ticket.getBody();
             String ticketPlayer = ticket.getPlayerName();
+
+            if (ticketBody == null) ticketBody = "INVALID";
+            if (ticketPlayer == null) ticketPlayer = "INVALID";
 
             // Calculate length of list entry, constant is extra space
             int entryLength = ticketBody.length() + ticketPlayer.length() + Integer.toString(ticket.getId()).length() + 1;
@@ -118,6 +124,28 @@ public class Ticket {
             builder.append(ticketBody, f).event(ticketHover).event(ticketClick).append("\n");
         }
         return builder.create();
+    }
+
+    /**
+     * Generate minecraft chat hover event for ticket list
+     *
+     * @return event for ticket mouse hover
+     */
+    private HoverEvent getTicketListHoverEvent() {
+        ComponentBuilder ticketHoverText = new ComponentBuilder("");
+        ticketHoverText.append("Ticket #" + id + "\n").color(chatKeyColor)
+                .append(playerName, f).bold(true).append("\n")
+                .append(body, f).append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
+        return new HoverEvent(HoverEvent.Action.SHOW_TEXT, ticketHoverText.create());
+    }
+
+    /**
+     * Generate minecraft chat click event for ticket list
+     *
+     * @return event for ticket click
+     */
+    private ClickEvent getTicketListClickEvent() {
+        return new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket show " + id);
     }
 
     public String getServerName() {
@@ -149,6 +177,7 @@ public class Ticket {
     }
 
     public void setPlayerName(String playerName) {
+        if (playerName == null) playerName = "INVALID";
         this.playerName = playerName;
     }
 
@@ -189,6 +218,7 @@ public class Ticket {
     }
 
     public void setBody(String body) {
+        if (body == null) body = "INVALID";
         this.body = body;
     }
 

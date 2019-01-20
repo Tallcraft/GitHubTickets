@@ -15,7 +15,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -240,29 +239,21 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
-        new AsyncCmdTask(() -> {
-            // Get ticket from GitHub by id
-            try {
-                Ticket ticket = ticketController.getTicket(id).get();
-                if (ticket == null) {
-                    sender.sendMessage("Ticket not found.");
-                    return;
-                }
-                // Check if player has permission to show specific ticket (own vs all perm)
-                if (hasPerm(sender, "show.all")
-                        || !(sender instanceof Player)
-                        || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
-                    sender.spigot().sendMessage(ticket.toChat());
-                    sender.sendMessage("");
-                } else {
-                    noPerm(sender, command);
-                }
-
-            } catch (IOException | InterruptedException | ExecutionException e) {
-                sender.sendMessage("Error while getting ticket");
-                e.printStackTrace();
-            }
-        }).runTaskAsynchronously(plugin);
+        // Get ticket from GitHub by id
+        Ticket ticket = ticketController.getTicket(id);
+        if (ticket == null) {
+            sender.sendMessage("Ticket not found.");
+            return true;
+        }
+        // Check if player has permission to show specific ticket (own vs all perm)
+        if (hasPerm(sender, "show.all")
+                || !(sender instanceof Player)
+                || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
+            sender.spigot().sendMessage(ticket.toChat());
+            sender.sendMessage("");
+        } else {
+            noPerm(sender, command);
+        }
         return true;
     }
 
@@ -274,18 +265,9 @@ public class TicketCommand implements CommandExecutor {
      * @return true on valid syntax, false otherwise
      */
     private boolean showTicketList(CommandSender sender, String[] args) {
-        new AsyncCmdTask(() -> {
-            List<Ticket> ticketList = null;
-            try {
-                ticketList = ticketController.getOpenTickets().get();
-                sender.spigot().sendMessage(ticketListHeading);
-                sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
-            } catch (InterruptedException | ExecutionException e) {
-                sender.sendMessage("Error while getting ticket list");
-                e.printStackTrace();
-            }
-        }).runTaskAsynchronously(plugin);
-
+        List<Ticket> ticketList = ticketController.getOpenTickets();
+        sender.spigot().sendMessage(ticketListHeading);
+        sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
         return true;
     }
 
@@ -317,37 +299,28 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
-        new AsyncCmdTask(() -> {
+        Ticket ticket;
 
-            Ticket ticket;
+        // Get ticket from GitHub by id
+        ticket = ticketController.getTicket(id);
+        if (ticket == null) {
+            sender.sendMessage("Ticket not found.");
+            return true;
+        }
 
-            // Get ticket from GitHub by id
-            try {
-                ticket = ticketController.getTicket(id).get();
-                if (ticket == null) {
-                    sender.sendMessage("Ticket not found.");
-                    return;
-                }
-            } catch (IOException | InterruptedException | ExecutionException e) {
-                sender.sendMessage("Error while getting ticket");
-                e.printStackTrace();
-                return;
-            }
+        World world = Bukkit.getWorld(ticket.getWorldName());
+        if (world == null) {
+            sender.sendMessage("World " + ticket.getWorldName() + " not found!");
+            return true;
+        }
+        Location location = new Location(
+                world,
+                ticket.getLocation().getX(),
+                ticket.getLocation().getY(),
+                ticket.getLocation().getZ());
 
-            World world = Bukkit.getWorld(ticket.getWorldName());
-            if (world == null) {
-                sender.sendMessage("World " + ticket.getWorldName() + " not found!");
-                return;
-            }
-            Location location = new Location(
-                    world,
-                    ticket.getLocation().getX(),
-                    ticket.getLocation().getY(),
-                    ticket.getLocation().getZ());
-
-            sender.sendMessage("Teleporting to ticket #" + ticket.getId());
-            player.teleport(location);
-        }).runTaskAsynchronously(plugin);
+        sender.sendMessage("Teleporting to ticket #" + ticket.getId());
+        player.teleport(location);
         return true;
     }
 
@@ -370,7 +343,7 @@ public class TicketCommand implements CommandExecutor {
             long ticketID;
             try {
                 ticketID = ticketController.createTicket((Player) sender, new Date(), message).get();
-            } catch (IOException | InterruptedException | ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 sender.sendMessage("Error: Could not create ticket");
                 e.printStackTrace();
                 return;

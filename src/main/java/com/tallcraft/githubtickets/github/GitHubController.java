@@ -10,6 +10,7 @@ import org.eclipse.egit.github.core.service.IssueService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -77,6 +78,10 @@ public class GitHubController {
         apiWorker.runTaskAsynchronously(plugin);
     }
 
+    public boolean isConnected() {
+        return isConnected;
+    }
+
     /**
      * Create Issue on Github from Ticket
      * API Call is async
@@ -128,12 +133,12 @@ public class GitHubController {
      *
      * @return Future which resolves with ticket list or exception
      */
-    public Future<List<Ticket>> getOpenTickets() {
+    public Future<List<Ticket>> getTickets() {
         CompletableFuture<List<Ticket>> future = new CompletableFuture<>();
         // Create async task
         Runnable task = () -> {
             try {
-                future.complete(getOpenTicketsSync());
+                future.complete(getTicketsSync(false));
             } catch (IOException e) {
                 // Forward exception to future
                 future.completeExceptionally(e);
@@ -256,9 +261,17 @@ public class GitHubController {
      * @return list of tickets with state open
      * @throws IOException API error
      */
-    private List<Ticket> getOpenTicketsSync() throws IOException {
-        Map<String, String> issueFilters = Map.of(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
+    private List<Ticket> getTicketsSync(boolean filterOpen) throws IOException {
+        Map<String, String> issueFilters;
+
+        if (filterOpen) {
+            issueFilters = Map.of(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
+        } else {
+            issueFilters = new HashMap<>();
+        }
+
         List<Issue> issues = issueService.getIssues(repository, issueFilters);
+
         return issueConverter.issueToTicket(issues);
     }
 }
