@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -61,7 +62,7 @@ public class TicketController {
      * @param ticket Ticket Object
      * @return Ticket ID
      */
-    public Future<Integer> createTicket(Ticket ticket) {
+    private Future<Integer> createTicket(Ticket ticket) {
         if (serverName != null) ticket.setServerName(serverName);
         return githubController.createTicket(ticket);
     }
@@ -93,7 +94,7 @@ public class TicketController {
      * @param body       Ticket text
      * @return Future with Ticket ID
      */
-    public Future<Integer> createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
+    private Future<Integer> createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
         // If server name is set in ticket controller overwrite server getter
         String serverNameOverride = this.serverName == null ? serverName : this.serverName;
         Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverNameOverride, worldName, location, body);
@@ -151,8 +152,8 @@ public class TicketController {
         return githubController.getTickets();
     }
 
-    public Ticket getTicket(int id) {
-        return tickets.get(id);
+    public CompletableFuture<Ticket> getTicket(int id) {
+        return CompletableFuture.supplyAsync(() -> tickets.get(id));
     }
 
     /**
@@ -160,10 +161,12 @@ public class TicketController {
      *
      * @return List of open tickets
      */
-    public List<Ticket> getOpenTickets() {
-        return tickets.values().stream()
+    public CompletableFuture<List<Ticket>> getOpenTickets() {
+        // Filter by state = open, sort by id reverse and return as list
+        return CompletableFuture.supplyAsync(() ->
+                tickets.values().stream()
                 .filter(Ticket::isOpen)
                 .sorted(Comparator.comparing(Ticket::getId).reversed())
-                .collect(Collectors.toCollection(LinkedList::new));
+                        .collect(Collectors.toCollection(LinkedList::new)));
     }
 }

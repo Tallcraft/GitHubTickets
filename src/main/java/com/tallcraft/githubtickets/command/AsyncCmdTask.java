@@ -13,6 +13,14 @@ public class AsyncCmdTask extends BukkitRunnable {
         this.task = task;
     }
 
+    AsyncCmdTask() {
+    }
+
+
+    void setTask(Runnable task) {
+        this.task = task;
+    }
+
     /**
      * When an object implementing interface <code>Runnable</code> is used
      * to create a thread, starting the thread causes the object's

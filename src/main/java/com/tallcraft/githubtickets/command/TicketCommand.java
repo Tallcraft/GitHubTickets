@@ -77,44 +77,44 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
-        // Is user command syntax valid?
-        boolean validSyntax = false;
+        // Select command task depending on args
+        AsyncCmdTask task = new AsyncCmdTask();
 
-        // Assign to handling methods
         switch (args[0].toLowerCase()) {
             case "show":
                 if (!hasPerm(sender, "show.self") && !hasPerm(sender, "show.all"))
                     return noPerm(sender, command);
-                validSyntax = showTicket(sender, command, args);
+                task.setTask(showTicket(sender, command, args));
                 break;
             case "tp":
                 if (!hasPerm(sender, "tp")) return noPerm(sender, command);
-                validSyntax = teleportTicket(sender, args);
+                task.setTask(teleportTicket(sender, args));
                 break;
             case "create":
                 if (!hasPerm(sender, "create")) return noPerm(sender, command);
-                validSyntax = createTicket(sender, args);
+                task.setTask(createTicket(sender, args));
                 break;
             case "list":
                 if (!hasPerm(sender, "list")) return noPerm(sender, command);
-                validSyntax = showTicketList(sender, args);
+                task.setTask(showTicketList(sender, args));
                 break;
             case "close":
                 if (!hasPerm(sender, "close.self") && !hasPerm(sender, "close.all"))
                     return noPerm(sender, command);
-                validSyntax = changeTicketStatus(sender, command, args, false);
+                task.setTask(changeTicketStatus(sender, command, args, false));
                 break;
             case "reopen":
                 if (!hasPerm(sender, "reopen.self") && !hasPerm(sender, "reopen.all"))
                     return noPerm(sender, command);
-                validSyntax = changeTicketStatus(sender, command, args, true);
+                task.setTask(changeTicketStatus(sender, command, args, true));
                 break;
+            default:
+                task.setTask(() -> {
+                    showHelp(sender, label);
+                });
         }
 
-        // If syntax is invalid show help message
-        if (!validSyntax) {
-            showHelp(sender, label);
-        }
+        task.runTaskAsynchronously(plugin);
 
         return true;
     }
@@ -180,20 +180,23 @@ public class TicketCommand implements CommandExecutor {
      * @param open   true = open ticket, false = close ticket
      * @return true if a valid command, otherwise false
      */
-    private boolean changeTicketStatus(CommandSender sender, Command command, String[] args, boolean open) {
-        if (args.length < 2) return false;
+    private Runnable changeTicketStatus(CommandSender sender, Command command, String[] args, boolean open) {
+        return () -> {
 
-        int id;
+            if (args.length < 2) {
+                sender.sendMessage("Missing ticket id");
+                return;
+            }
 
-        // Parse ticket id
-        try {
-            id = Integer.parseInt(args[1]);
-        } catch (NumberFormatException ex) {
-            sender.sendMessage("Invalid ticket id!");
-            return true;
-        }
+            int id;
 
-        new AsyncCmdTask(() -> {
+            // Parse ticket id
+            try {
+                id = Integer.parseInt(args[1]);
+            } catch (NumberFormatException ex) {
+                sender.sendMessage("Invalid ticket id!");
+                return;
+            }
 
             try {
                 Ticket ticket = ticketController.changeTicketStatus(id, open).get();
@@ -214,9 +217,7 @@ public class TicketCommand implements CommandExecutor {
                 e.printStackTrace();
                 sender.sendMessage("Error while changing ticket state");
             }
-        }).runTaskAsynchronously(plugin);
-
-        return true;
+        };
     }
 
     /**
@@ -226,35 +227,45 @@ public class TicketCommand implements CommandExecutor {
      * @param args   command arguments
      * @return true on valid syntax, false otherwise
      */
-    private boolean showTicket(CommandSender sender, Command command, String[] args) {
-        if (args.length < 2) return false;
+    private Runnable showTicket(CommandSender sender, Command command, String[] args) {
+        return () -> {
+            if (args.length < 2) {
+                sender.sendMessage("Missing ticket id");
+                return;
+            }
 
-        int id;
+            int id;
 
-        // Parse ticket id
-        try {
-            id = Integer.parseInt(args[1]);
-        } catch (NumberFormatException ex) {
-            sender.sendMessage("Invalid ticket id!");
-            return true;
-        }
+            // Parse ticket id
+            try {
+                id = Integer.parseInt(args[1]);
+            } catch (NumberFormatException ex) {
+                sender.sendMessage("Invalid ticket id!");
+                return;
+            }
 
-        // Get ticket from GitHub by id
-        Ticket ticket = ticketController.getTicket(id);
-        if (ticket == null) {
-            sender.sendMessage("Ticket not found.");
-            return true;
-        }
-        // Check if player has permission to show specific ticket (own vs all perm)
-        if (hasPerm(sender, "show.all")
-                || !(sender instanceof Player)
-                || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
-            sender.spigot().sendMessage(ticket.toChat());
-            sender.sendMessage("");
-        } else {
-            noPerm(sender, command);
-        }
-        return true;
+            // Get ticket from GitHub by id
+            Ticket ticket = null;
+            try {
+                ticket = ticketController.getTicket(id).get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                sender.sendMessage("Error while fetching ticket");
+            }
+            if (ticket == null) {
+                sender.sendMessage("Ticket not found.");
+                return;
+            }
+            // Check if player has permission to show specific ticket (own vs all perm)
+            if (hasPerm(sender, "show.all")
+                    || !(sender instanceof Player)
+                    || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
+                sender.spigot().sendMessage(ticket.toChat());
+                sender.sendMessage("");
+            } else {
+                noPerm(sender, command);
+            }
+        };
     }
 
     /**
@@ -264,11 +275,19 @@ public class TicketCommand implements CommandExecutor {
      * @param args   command arguments
      * @return true on valid syntax, false otherwise
      */
-    private boolean showTicketList(CommandSender sender, String[] args) {
-        List<Ticket> ticketList = ticketController.getOpenTickets();
-        sender.spigot().sendMessage(ticketListHeading);
-        sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
-        return true;
+    private Runnable showTicketList(CommandSender sender, String[] args) {
+        return () -> {
+            List<Ticket> ticketList;
+            try {
+                ticketList = ticketController.getOpenTickets().get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                sender.sendMessage("Error while fetching ticket list");
+                return;
+            }
+            sender.spigot().sendMessage(ticketListHeading);
+            sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
+        };
     }
 
     /**
@@ -278,50 +297,60 @@ public class TicketCommand implements CommandExecutor {
      * @param args   Command arguments
      * @return true on valid syntax, false otherwise
      */
-    private boolean teleportTicket(CommandSender sender, String[] args) {
-        if (args.length < 2) return false;
+    private Runnable teleportTicket(CommandSender sender, String[] args) {
+        return () -> {
+            if (args.length < 2) {
+                sender.sendMessage("Missing ticket id");
+                return;
+            }
 
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("Only players may use this command.");
-            return true;
-        }
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Only players may use this command.");
+                return;
+            }
 
-        // Cast to player so we can teleport
-        Player player = (Player) sender;
+            // Cast to player so we can teleport
+            Player player = (Player) sender;
 
-        int id;
+            int id;
 
-        // Parse ticket id
-        try {
-            id = Integer.parseInt(args[1]);
-        } catch (NumberFormatException ex) {
-            sender.sendMessage("Invalid ticket id!");
-            return true;
-        }
+            // Parse ticket id
+            try {
+                id = Integer.parseInt(args[1]);
+            } catch (NumberFormatException ex) {
+                sender.sendMessage("Invalid ticket id!");
+                return;
+            }
 
-        Ticket ticket;
+            Ticket ticket;
 
-        // Get ticket from GitHub by id
-        ticket = ticketController.getTicket(id);
-        if (ticket == null) {
-            sender.sendMessage("Ticket not found.");
-            return true;
-        }
+            // Get ticket from GitHub by id
+            try {
+                ticket = ticketController.getTicket(id).get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                sender.sendMessage("Error while fetching ticket");
+                return;
+            }
+            if (ticket == null) {
+                sender.sendMessage("Ticket not found.");
+                return;
+            }
 
-        World world = Bukkit.getWorld(ticket.getWorldName());
-        if (world == null) {
-            sender.sendMessage("World " + ticket.getWorldName() + " not found!");
-            return true;
-        }
-        Location location = new Location(
-                world,
-                ticket.getLocation().getX(),
-                ticket.getLocation().getY(),
-                ticket.getLocation().getZ());
+            World world = Bukkit.getWorld(ticket.getWorldName());
+            if (world == null) {
+                sender.sendMessage("World " + ticket.getWorldName() + " not found!");
+                return;
+            }
+            Location location = new Location(
+                    world,
+                    ticket.getLocation().getX(),
+                    ticket.getLocation().getY(),
+                    ticket.getLocation().getZ());
 
-        sender.sendMessage("Teleporting to ticket #" + ticket.getId());
-        player.teleport(location);
-        return true;
+            sender.sendMessage("Teleporting to ticket #" + ticket.getId());
+            player.teleport(location);
+        };
     }
 
     /**
@@ -331,12 +360,12 @@ public class TicketCommand implements CommandExecutor {
      * @param args   command arguments
      * @return true on valid syntax, false otherwise
      */
-    private boolean createTicket(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("Console not supported (yet)");
-            return true;
-        }
-        new AsyncCmdTask(() -> {
+    private Runnable createTicket(CommandSender sender, String[] args) {
+        return () -> {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Console not supported (yet)");
+                return;
+            }
             // Join args to form string for ticket message
             String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
 
@@ -349,9 +378,7 @@ public class TicketCommand implements CommandExecutor {
                 return;
             }
             sender.sendMessage("Created ticket #" + ticketID);
-        }).runTaskAsynchronously(plugin);
-
-        return true;
+        };
     }
 
 }
