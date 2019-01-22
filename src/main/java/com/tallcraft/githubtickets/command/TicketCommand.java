@@ -213,6 +213,8 @@ public class TicketCommand implements CommandExecutor {
                 return;
             }
 
+            sender.sendMessage("Ticket change submitted...");
+
             try {
                 Ticket ticket = ticketController.changeTicketStatus(id, open).get();
                 if (ticket == null) {
@@ -388,6 +390,8 @@ public class TicketCommand implements CommandExecutor {
                 sender.sendMessage("Invalid ticket message");
                 return;
             }
+
+            sender.sendMessage("Ticket submitted...");
 
             long ticketID;
             try {
