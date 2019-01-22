@@ -27,10 +27,13 @@ public class TicketCommand implements CommandExecutor {
     private static final BaseComponent[] ticketListHeading = new ComponentBuilder("Tickets >>>>>>").color(ChatColor.GOLD).bold(true).create();
     private GithubTickets plugin;
 
+    private int minWordCount;
+
     // TODO: for all async / rate limited calls: list of players, add to it if player called something, remove it when result is there. this prevents multiple ongoing calls by player
 
-    public TicketCommand(GithubTickets plugin) {
+    public TicketCommand(GithubTickets plugin, int minWordCount) {
         this.plugin = plugin;
+        this.minWordCount = minWordCount;
     }
 
     /**
@@ -54,6 +57,18 @@ public class TicketCommand implements CommandExecutor {
     private boolean noPerm(CommandSender sender, Command command) {
         sender.sendMessage(command.getPermissionMessage());
         return true;
+    }
+
+    /**
+     * Test ticket body for requirements such as non empty and minimum amount of words
+     *
+     * @param body Ticket message
+     * @return true if requirements met, false otherwise
+     */
+    private boolean testBody(String body) {
+        if (body == null || body.isEmpty()) return false;
+        int wordCount = body.split(" ").length;
+        return wordCount >= minWordCount;
     }
 
     /**
@@ -178,7 +193,7 @@ public class TicketCommand implements CommandExecutor {
      * @param sender command sender
      * @param args   Passed command arguments
      * @param open   true = open ticket, false = close ticket
-     * @return true if a valid command, otherwise false
+     * @return async task
      */
     private Runnable changeTicketStatus(CommandSender sender, Command command, String[] args, boolean open) {
         return () -> {
@@ -225,7 +240,7 @@ public class TicketCommand implements CommandExecutor {
      *
      * @param sender Source of the command
      * @param args   command arguments
-     * @return true on valid syntax, false otherwise
+     * @return async task
      */
     private Runnable showTicket(CommandSender sender, Command command, String[] args) {
         return () -> {
@@ -273,7 +288,7 @@ public class TicketCommand implements CommandExecutor {
      *
      * @param sender Source of the command
      * @param args   command arguments
-     * @return true on valid syntax, false otherwise
+     * @return async task
      */
     private Runnable showTicketList(CommandSender sender, String[] args) {
         return () -> {
@@ -295,7 +310,7 @@ public class TicketCommand implements CommandExecutor {
      *
      * @param sender Source of the command
      * @param args   Command arguments
-     * @return true on valid syntax, false otherwise
+     * @return async task
      */
     private Runnable teleportTicket(CommandSender sender, String[] args) {
         return () -> {
@@ -358,7 +373,7 @@ public class TicketCommand implements CommandExecutor {
      *
      * @param sender Source of the command
      * @param args   command arguments
-     * @return true on valid syntax, false otherwise
+     * @return async task
      */
     private Runnable createTicket(CommandSender sender, String[] args) {
         return () -> {
@@ -368,6 +383,11 @@ public class TicketCommand implements CommandExecutor {
             }
             // Join args to form string for ticket message
             String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
+
+            if (!testBody(message)) {
+                sender.sendMessage("Invalid ticket message");
+                return;
+            }
 
             long ticketID;
             try {

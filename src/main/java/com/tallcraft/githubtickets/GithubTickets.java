@@ -32,6 +32,7 @@ public final class GithubTickets extends JavaPlugin {
         String password = config.getString("github.auth.password");
         String repositoryUser = config.getString("github.repository.user");
         String repositoryName = config.getString("github.repository.repoName");
+        int minWordCount = config.getInt("ticketMinWordCount");
 
         // Servername overwrite
         String serverName = config.getString("serverName");
@@ -60,7 +61,7 @@ public final class GithubTickets extends JavaPlugin {
         ticketController.init(this);
 
         // Initialize and register commands
-        TicketCommand ticketCommand = new TicketCommand(this);
+        TicketCommand ticketCommand = new TicketCommand(this, minWordCount);
         this.getCommand("ticket").setExecutor(ticketCommand);
     }
 
@@ -78,6 +79,7 @@ public final class GithubTickets extends JavaPlugin {
         MemoryConfiguration defaultConfig = new MemoryConfiguration();
 
         defaultConfig.set("serverName", "");
+        defaultConfig.set("ticketMinWordCount", 2);
 
         ConfigurationSection github = defaultConfig.createSection("github");
         ConfigurationSection githubAuth = github.createSection("auth");
