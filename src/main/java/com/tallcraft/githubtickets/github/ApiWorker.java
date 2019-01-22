@@ -11,9 +11,20 @@ import java.util.concurrent.TimeUnit;
 public class ApiWorker extends BukkitRunnable {
 
     private LinkedBlockingQueue<Runnable> tasks;
+    private int apiCallDelay;
 
-    ApiWorker(LinkedBlockingQueue<Runnable> tasks) {
+    /**
+     * Create api worker
+     *
+     * @param tasks        queue of api tasks
+     * @param apiCallDelay delay between each api call in ms
+     */
+    ApiWorker(LinkedBlockingQueue<Runnable> tasks, int apiCallDelay) {
         this.tasks = tasks;
+
+        if (apiCallDelay <= 0)
+            throw new IllegalArgumentException("apiCallDelay must be greater than zero");
+        this.apiCallDelay = apiCallDelay;
     }
 
     /**
@@ -36,7 +47,7 @@ public class ApiWorker extends BukkitRunnable {
                 // Time to wait between each api call
                 // GitHub API is limited to 5000 calls per hour, that's 1.3889 per second, thus 2 second delay
                 // should be sufficient
-                Thread.sleep(2000);
+                Thread.sleep(apiCallDelay);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -29,8 +29,8 @@ public class GitHubController {
     private Repository repository;
     // Boolean to store current connection state to api
     private boolean isConnected = false;
-    private LinkedBlockingQueue<Runnable> apiTasks = new LinkedBlockingQueue<>();
-    private final ApiWorker apiWorker = new ApiWorker(apiTasks);
+    private LinkedBlockingQueue<Runnable> apiTasks;
+    private ApiWorker apiWorker;
 
     public static GitHubController getInstance() {
         return ourInstance;
@@ -45,7 +45,7 @@ public class GitHubController {
      * @param repositoryName Issue Repository Name
      * @throws IOException If an error occurs while establishing api connection
      */
-    public void connect(String user, String password, String repositoryUser, String repositoryName, GithubTickets plugin) throws IOException {
+    public void connect(String user, String password, String repositoryUser, String repositoryName, int serverInstanceCount, GithubTickets plugin) throws IOException {
         if (user == null || user.isEmpty()) {
             throw new IllegalArgumentException("'user' must not be empty");
         }
@@ -73,6 +73,12 @@ public class GitHubController {
 
         // Set api connection status flag
         isConnected = true;
+
+        // Initialize api tasks
+        apiTasks = new LinkedBlockingQueue<>();
+
+        // Initialize api worker with tasks and delay settings
+        apiWorker = new ApiWorker(apiTasks, 2000 * serverInstanceCount);
 
         // Start async worker for api requests
         apiWorker.runTaskAsynchronously(plugin);
