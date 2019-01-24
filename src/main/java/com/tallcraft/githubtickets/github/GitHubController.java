@@ -12,11 +12,13 @@ import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 /**
  * Interfaces between this application and GitHub API
@@ -203,7 +205,7 @@ public class GitHubController {
         // Change status of github issue and get updated issue object
         issue = changeTicketStatus(issue, open);
         // Convert issue object to ticket and return
-        return issueConverter.issueToTicket(issue);
+        return issueConverter.issueToTicket(new FullIssue(issue, null));
     }
 
 
@@ -220,21 +222,20 @@ public class GitHubController {
         }
 
         // Convert to issue object
-        Issue issue = issueConverter.ticketToIssue(ticket);
-
-        List<String> comments; // TODO
-
-        // TODO: comments, how can this be in issueConverter? with current api not really =(
+        FullIssue fullIssue = issueConverter.ticketToIssue(ticket);
 
         // API call to create issue
-        Issue createdIssue = issueService.createIssue(repository, issue);
+        Issue createdIssue = issueService.createIssue(repository, fullIssue.getIssue());
 
-        // TODO: catch exception and see if createdIssue != null
-
-        // Create comment on issue for each
-        comments.stream().forEach(comment -> {
+        /*
+            Create comment on issue for each
+            Normally a ticket doesn't have any comments on create, but let's support it to be
+            future proof
+            Note: "bypasses" api limit! is called comments.length times!
+        */
+        fullIssue.getComments().forEach(comment -> {
             try {
-                issueService.createComment(repository, issue.getNumber(), comment);
+                issueService.createComment(repository, fullIssue.getIssue().getNumber(), comment.getBody());
             } catch (IOException e) {
                 e.printStackTrace();
                 // Try next comment
@@ -255,7 +256,8 @@ public class GitHubController {
     private Ticket getTicketSync(int id) throws IOException {
         try {
             Issue issue = issueService.getIssue(repository, id);
-            return issueConverter.issueToTicket(issue);
+            List<Comment> comments = issueService.getComments(repository, issue.getNumber());
+            return issueConverter.issueToTicket(new FullIssue(issue, comments));
         } catch (RequestException ex) {
             // Don't throw not found exceptions, but return null issue
             if (ex.getStatus() == 404) {
@@ -294,8 +296,21 @@ public class GitHubController {
             issueFilters = new HashMap<>();
         }
 
+        // Get Issues from github
         List<Issue> issues = issueService.getIssues(repository, issueFilters);
 
-        return issueConverter.issueToTicket(issues);
+        // Get Comments from github and attach to issues (custom pair format)
+        List<FullIssue> fullIssues = issues.stream().map(issue -> {
+            try {
+                return new FullIssue(issue, issueService.getComments(repository, issue.getNumber()));
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Error getting comment for issue
+            }
+            return null;
+        }).collect(Collectors.toCollection(LinkedList::new));
+
+        // Convert issue+comment pairs to Tickets and return
+        return issueConverter.issueToTicket(fullIssues);
     }
 }

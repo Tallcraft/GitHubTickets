@@ -16,8 +16,8 @@ public class TicketComment {
     private String displayName;
     private String body;
 
-    // TODO: global
-    private static ChatColor chatKeyColor = ChatColor.GOLD;
+    // TODO: global, use same vars as settings
+    private static ChatColor chatKeyColor = ChatColor.GRAY;
     private static Locale locale = new Locale("en", "US");
     private static DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
 
@@ -25,10 +25,10 @@ public class TicketComment {
     private static final ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
 
     public TicketComment(Date timestamp, UUID playerUUID, String displayName, String body) {
-        this.timestamp = timestamp;
-        this.playerUUID = playerUUID;
-        this.displayName = displayName;
-        this.body = body;
+        setTimestamp(timestamp);
+        setPlayerUUID(playerUUID);
+        setDisplayName(displayName);
+        setBody(body);
     }
 
     public Date getTimestamp() {
@@ -86,7 +86,7 @@ public class TicketComment {
 
         HoverEvent commentHoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, commentHoverText.create());
 
-        builder.append(getDisplayName() + ": ", f).bold(true).color(chatKeyColor).event(commentHoverEvent);
+        builder.append(getDisplayName() + ": ", f).color(chatKeyColor).event(commentHoverEvent);
         builder.append(getBody(), f).event(commentHoverEvent);
 
         return builder.create();

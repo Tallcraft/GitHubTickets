@@ -278,6 +278,10 @@ public class TicketCommand implements CommandExecutor {
                     || !(sender instanceof Player)
                     || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
                 sender.spigot().sendMessage(ticket.toChat());
+                // TODO: pagination
+                sender.sendMessage("");
+                sender.sendMessage("Comments");
+                ticket.getComments().forEach(ticketComment -> sender.spigot().sendMessage(ticketComment.toChat()));
                 sender.sendMessage("");
             } else {
                 noPerm(sender, command);
