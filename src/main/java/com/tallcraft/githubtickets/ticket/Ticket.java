@@ -280,7 +280,7 @@ public class Ticket {
 
         // Location Hover Message & click for teleport
         HoverEvent locationHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Teleport to ticket location").create());
-        ClickEvent locationClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket tp " + id);
+        ClickEvent locationClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket tp " + id); // TODO: this should be a variable instead of static command string
 
         // Status Hover message & click for status  toggle
         HoverEvent statusHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to " + (isOpen ? "CLOSE" : "OPEN")).create());

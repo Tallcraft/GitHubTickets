@@ -7,6 +7,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -109,6 +110,11 @@ public class TicketCommand implements CommandExecutor {
                 if (!hasPerm(sender, "create")) return noPerm(sender, command);
                 task.setTask(createTicket(sender, args));
                 break;
+            case "reply":
+                if (!hasPerm(sender, "reply.self") && !hasPerm(sender, "reply.all"))
+                    return noPerm(sender, command);
+                task.setTask(replyTicket(sender, command, args));
+                break;
             case "list":
                 if (!hasPerm(sender, "list")) return noPerm(sender, command);
                 task.setTask(showTicketList(sender, args));
@@ -158,6 +164,12 @@ public class TicketCommand implements CommandExecutor {
             builder.append(baseCmd + " list", f).color(ChatColor.GOLD)
                     .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket list"));
             builder.append(" List open tickets", f).append("\n");
+        }
+
+        if (hasPerm(sender, "reply.self") || hasPerm(sender, "reply.all")) {
+            builder.append(baseCmd + " reply <ID> <Message>", f).color(ChatColor.GOLD)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket reply "));
+            builder.append(" Reply to a ticket", f).append("\n");
         }
 
         if (hasPerm(sender, "show.self") || hasPerm(sender, "show.all")) {
@@ -221,9 +233,7 @@ public class TicketCommand implements CommandExecutor {
                     sender.sendMessage("Ticket not found.");
                     return;
                 }
-                if (hasPerm(sender, "close.all") || hasPerm(sender, "reopen.all")
-                        || !(sender instanceof Player)
-                        || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
+                if (hasTicketPermission("close", sender, ticket)) {
                     sender.sendMessage("Ticket #" + id + " " + (open ? "reopened" : "closed") + ".");
                 } else {
                     noPerm(sender, command);
@@ -235,6 +245,14 @@ public class TicketCommand implements CommandExecutor {
                 sender.sendMessage("Error while changing ticket state");
             }
         };
+    }
+
+    private boolean hasTicketPermission(String basePermission, CommandSender sender, Ticket ticket) {
+        return hasPerm(sender, basePermission + ".all") // Players with all permission
+                || !(sender instanceof Player) // Console
+                ||
+                (hasPerm(sender, basePermission + ".self")
+                        && ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())); // Players with matching id and self permission
     }
 
     /**
@@ -274,17 +292,81 @@ public class TicketCommand implements CommandExecutor {
                 return;
             }
             // Check if player has permission to show specific ticket (own vs all perm)
-            if (hasPerm(sender, "show.all")
-                    || !(sender instanceof Player)
-                    || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
+            if (hasTicketPermission("show", sender, ticket)) {
                 sender.spigot().sendMessage(ticket.toChat());
                 // TODO: pagination
                 sender.sendMessage("");
-                sender.sendMessage("Comments");
-                ticket.getComments().forEach(ticketComment -> sender.spigot().sendMessage(ticketComment.toChat()));
+
+                ComponentBuilder commentListHeading =
+                        new ComponentBuilder("Comments")
+                                .color(ChatColor.GOLD)
+                                .bold(true)
+                                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket reply " + ticket.getId()))
+                                .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to reply").create()));
+
+                sender.spigot().sendMessage(commentListHeading.create());
+                if (ticket.getComments().isEmpty()) {
+                    sender.sendMessage("-");
+                } else {
+                    ticket.getComments().forEach(ticketComment -> sender.spigot().sendMessage(ticketComment.toChat()));
+                }
+
                 sender.sendMessage("");
             } else {
                 noPerm(sender, command);
+            }
+        };
+    }
+
+    //  TODO: check for .self and .all permissions
+    private Runnable replyTicket(CommandSender sender, Command command, String[] args) {
+        return () -> {
+            if (args.length < 2) {
+                sender.sendMessage("Missing ticket id");
+                return;
+            }
+
+            if (args.length < 3) {
+                sender.sendMessage("Missing reply message");
+                return;
+            }
+
+            int id;
+
+            // Parse ticket id
+            try {
+                id = Integer.parseInt(args[1]);
+            } catch (NumberFormatException ex) {
+                sender.sendMessage("Invalid ticket id!");
+                return;
+            }
+
+            // Join args to form string for reply message
+            String message = Arrays.stream(args).skip(2).collect(Collectors.joining(" "));
+
+            try {
+                // Fetch ticket object by id
+                Ticket ticket = ticketController.getTicket(id).get();
+                if (ticket == null) {
+                    sender.sendMessage("Ticket not found by id");
+                    return;
+                }
+
+                // Ticket found => permission check
+                if (!hasTicketPermission("reply", sender, ticket)) {
+                    noPerm(sender, command);
+                    return;
+                }
+
+                // Give user feedback
+                sender.sendMessage("Reply submitted...");
+
+                // Trigger action
+                ticketController.replyTicket(id, (Player) sender, message).get();
+                sender.sendMessage("Added reply");
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                sender.sendMessage("Error while adding reply");
             }
         };
     }

@@ -36,7 +36,6 @@ public class TicketComment {
     }
 
     public void setTimestamp(Date timestamp) {
-        if(timestamp == null) throw new IllegalArgumentException("timestamp must not be null");
         this.timestamp = timestamp;
     }
 
@@ -79,9 +78,11 @@ public class TicketComment {
         ComponentBuilder commentHoverText = new ComponentBuilder("");
 
         if(playerUUID != null) {
-            commentHoverText.append("UUID",f).bold(true).color(chatKeyColor).append("\n");
+            commentHoverText.append("UUID: ", f).bold(true).color(chatKeyColor);
             commentHoverText.append(playerUUID.toString(), f).append("\n");
         }
+
+        commentHoverText.append("Time: ", f).bold(true).color(chatKeyColor);
         commentHoverText.append(dateFormat.format(timestamp), f);
 
         HoverEvent commentHoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, commentHoverText.create());

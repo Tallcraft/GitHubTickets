@@ -2,6 +2,7 @@ package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.GithubTickets;
 import com.tallcraft.githubtickets.ticket.Ticket;
+import com.tallcraft.githubtickets.ticket.TicketComment;
 import org.eclipse.egit.github.core.Comment;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Repository;
@@ -104,6 +105,22 @@ public class GitHubController {
         Runnable task = () -> {
             try {
                 future.complete(createTicketSync(ticket));
+            } catch (IOException e) {
+                // Forward exception to future
+                future.completeExceptionally(e);
+            }
+        };
+        // Add api call to tasks list
+        apiTasks.add(task);
+        return future;
+    }
+
+    public Future<TicketComment> addTicketComment(int id, TicketComment comment) {
+        CompletableFuture<TicketComment> future = new CompletableFuture<>();
+        // Create async task
+        Runnable task = () -> {
+            try {
+                future.complete(addTicketCommentSync(id, comment));
             } catch (IOException e) {
                 // Forward exception to future
                 future.completeExceptionally(e);
@@ -243,6 +260,28 @@ public class GitHubController {
         });
 
         return createdIssue.getNumber();
+    }
+
+    /**
+     * Reply to a ticket
+     *
+     * @param id      Ticket number
+     * @param comment comment to add to ticket
+     * @return created comment or null if ticket id not found
+     * @throws IOException If an error occurs during api communication
+     */
+    private TicketComment addTicketCommentSync(int id, TicketComment comment) throws IOException {
+        String commentStr = issueConverter.printCommentBody(comment);
+        try {
+            Comment resultComment = issueService.createComment(repository, id, commentStr);
+            return issueConverter.commentToTicketComment(resultComment);
+        } catch (RequestException ex) {
+            // Don't throw not found exceptions, but return null issue
+            if (ex.getStatus() == 404) {
+                return null;
+            }
+            throw ex;
+        }
     }
 
 

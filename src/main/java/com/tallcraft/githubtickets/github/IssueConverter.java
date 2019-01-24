@@ -145,9 +145,10 @@ class IssueConverter {
      * @param comment comment representation from github with metadata in body
      * @return internal comment format with seperated fields
      */
-    private TicketComment commentToTicketComment(Comment comment) {
+    TicketComment commentToTicketComment(Comment comment) {
         String uuidStr = getValue(comment.getBody(), "UUID");
         UUID uuid = null;
+        String body = null;
 
         if (uuidStr != null) {
             try {
@@ -160,11 +161,26 @@ class IssueConverter {
         //  Get display name, fallback to github name
         String displayName = getValue(comment.getBody(), "Name");
         if (displayName == null) {
+            // If display name is not present we assume that body comes from github web, use it all
+            // TODO: Find a better way to detect this!
+            body = comment.getBody();
+
             // Can be ticket bot name
             displayName = comment.getUser().getName();
+
+            // If no name can be found use static
+            if (displayName == null) {
+                displayName = "Staff";
+            }
         }
 
-        return new TicketComment(comment.getCreatedAt(), uuid, displayName, parseBody(comment.getBody()));
+        // If body wasn't already set previously parse it from comment
+        if (body == null) {
+            body = parseBody(comment.getBody());
+        }
+
+
+        return new TicketComment(comment.getCreatedAt(), uuid, displayName, body);
     }
 
 
@@ -176,8 +192,10 @@ class IssueConverter {
      */
     private String parseBody(String body) {
         Matcher matcher = bodyPattern.matcher(body);
-        if (matcher.find()) {
-            return matcher.group(2);
+
+        while (matcher.find()) {
+            String match = matcher.group(2);
+            if (match != null) return match;
         }
         return null;
     }
@@ -188,7 +206,7 @@ class IssueConverter {
      * @param comment comment to be converted
      * @return api ready string representation of comment
      */
-    private String printCommentBody(TicketComment comment) {
+    String printCommentBody(TicketComment comment) {
         return "Name: " + comment.getDisplayName() + "\n"
                 + "UUID: " + comment.getPlayerUUID() + "\n" + "\n"
                 + comment.getBody();

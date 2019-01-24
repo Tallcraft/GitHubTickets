@@ -133,6 +133,11 @@ public class TicketController {
         return githubController.changeTicketStatus(id, open);
     }
 
+    public Future<TicketComment> replyTicket(int id, Player player, String message) {
+        TicketComment comment = new TicketComment(null, player.getUniqueId(), player.getDisplayName(), message);
+        return githubController.addTicketComment(id, comment);
+    }
+
     /**
      * Get Ticket by ID
      *
