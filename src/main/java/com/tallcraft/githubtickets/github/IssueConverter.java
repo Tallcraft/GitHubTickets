@@ -2,6 +2,7 @@ package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.ticket.Location;
 import com.tallcraft.githubtickets.ticket.Ticket;
+import com.tallcraft.githubtickets.ticket.TicketComment;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Label;
 import org.eclipse.egit.github.core.service.IssueService;
@@ -9,6 +10,7 @@ import org.eclipse.egit.github.core.service.IssueService;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Converts between Issues and Tickets by generating Strings and parsing from Strings
@@ -63,17 +65,24 @@ class IssueConverter {
      * @param ticket Ticket object to convert
      * @return Issue object from ticket data
      */
-    Issue ticketToIssue(Ticket ticket) {
+    Map<Issue, List<String>> ticketToIssue(Ticket ticket) {
         Issue issue = new Issue();
         Label serverLabel = new Label();
+
+        serverLabel.setName("Server: " + ticket.getServerName());
 
         issue.setLabels(new ArrayList<>(Collections.singletonList(serverLabel)));
         issue.setTitle(getIssueTitle(ticket));
         issue.setBody(getIssueBody(ticket));
 
-        serverLabel.setName("Server: " + ticket.getServerName());
+        // Get ticket comments
+        LinkedList<TicketComment> comments = ticket.getComments();
 
-        return issue;
+        // Convert comments to strings
+        LinkedList<String> convertedComments = comments.stream().map(this::getCommentBody)
+                .collect(Collectors.toCollection(LinkedList::new));
+
+        return Map.of(issue, convertedComments);
     }
 
     /**
@@ -105,11 +114,19 @@ class IssueConverter {
             ticket.setWorldName(getValue(issue, "World"));
             ticket.setLocation(Location.fromString(getValue(issue, "Location")));
             ticket.setBody(getTicketBody(issue));
+
+            // TODO: comments
         } catch (IllegalArgumentException ex) {
             // Error while parsing ticket
             return null;
         }
         return ticket;
+    }
+
+    private String getCommentBody(TicketComment comment) {
+        return "Name: " + comment.getDisplayName() + "\n"
+                + "UUID: " + comment.getPlayerUUID() + "\n" + "\n"
+                + comment.getBody();
     }
 
     /**

@@ -36,7 +36,7 @@ public class Ticket {
     private LinkedList<TicketComment> comments;
 
     public Ticket() {
-
+        comments = new LinkedList<>();
     }
 
     /**
@@ -249,8 +249,22 @@ public class Ticket {
         return isOpen ? "OPEN" : "CLOSED";
     }
 
+    public LinkedList<TicketComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(LinkedList<TicketComment> comments) {
+        if (comments == null) throw new IllegalArgumentException("comments must not be null");
+        this.comments = comments;
+    }
+
+    public boolean addComment(TicketComment comment) {
+        if(comment == null) throw new IllegalArgumentException("comment must not be null");
+        return comments.add(comment);
+    }
+
     /**
-     * Conver Ticket to BaseComponent used for Minecraft chat output
+     * Convert Ticket to BaseComponent used for Minecraft chat output
      *
      * @return BaseComponent representing ticket
      */

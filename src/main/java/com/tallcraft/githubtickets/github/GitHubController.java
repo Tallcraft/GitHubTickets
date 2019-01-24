@@ -2,6 +2,7 @@ package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.GithubTickets;
 import com.tallcraft.githubtickets.ticket.Ticket;
+import org.eclipse.egit.github.core.Comment;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.client.GitHubClient;
@@ -221,8 +222,25 @@ public class GitHubController {
         // Convert to issue object
         Issue issue = issueConverter.ticketToIssue(ticket);
 
+        List<String> comments; // TODO
+
+        // TODO: comments, how can this be in issueConverter? with current api not really =(
+
         // API call to create issue
         Issue createdIssue = issueService.createIssue(repository, issue);
+
+        // TODO: catch exception and see if createdIssue != null
+
+        // Create comment on issue for each
+        comments.stream().forEach(comment -> {
+            try {
+                issueService.createComment(repository, issue.getNumber(), comment);
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Try next comment
+            }
+        });
+
         return createdIssue.getNumber();
     }
 
