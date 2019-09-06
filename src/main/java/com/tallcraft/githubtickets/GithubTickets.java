@@ -1,6 +1,6 @@
 package com.tallcraft.githubtickets;
 
-import com.tallcraft.githubtickets.command.TicketCommand;
+import com.tallcraft.githubtickets.command.TicketCommandExecutor;
 import com.tallcraft.githubtickets.github.GitHubController;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import org.bukkit.Bukkit;
@@ -58,8 +58,8 @@ public final class GithubTickets extends JavaPlugin {
         }
 
         // Initialize and register commands
-        TicketCommand ticketCommand = new TicketCommand(this, minWordCount);
-        this.getCommand("ticket").setExecutor(ticketCommand);
+        TicketCommandExecutor ticketCommandExecutor = new TicketCommandExecutor(this, minWordCount);
+        this.getCommand("ticket").setExecutor(ticketCommandExecutor);
     }
 
     @Override
