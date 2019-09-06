@@ -51,7 +51,7 @@ permissions:
     default: false
   githubtickets.list:
     description: Show list of tickets
-    default: false
+    default: true
   githubtickets.close.self:
     description: Close own tickets
     default: true
