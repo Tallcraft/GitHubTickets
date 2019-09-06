@@ -1,6 +1,5 @@
 package com.tallcraft.githubtickets.github;
 
-import com.tallcraft.githubtickets.GithubTickets;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import org.kohsuke.github.*;
 
@@ -16,11 +15,14 @@ public class GitHubController {
     private static IssueConverter issueConverter = IssueConverter.getInstance();
 
 
-    private GitHub client;
+    // Either user/password or OAuth is needed for GitHub auth
+    private String user;
+    private String password;
+    private String oauth;
+
     private GHRepository repository;
 
-
-    // Boolean to store current connection state to api
+    // Boolean to store current api connection state
     private boolean isConnected = false;
 
     public static GitHubController getInstance() {
@@ -30,22 +32,13 @@ public class GitHubController {
     /**
      * Connect to GitHub API
      *
-     * @param user           GitHub username
-     * @param password       GitHub password
      * @param repositoryUser Issue Repository Owner
      * @param repositoryName Issue Repository Name
      * @throws IOException If an error occurs while establishing api connection
      */
-    public void connect(String user, String password, String repositoryUser, String repositoryName, GithubTickets plugin) throws IOException {
-        assert (client == null);
+    public void connect(String repositoryUser, String repositoryName) throws IOException {
         assert (!isConnected);
 
-        if (user == null || user.isEmpty()) {
-            throw new IllegalArgumentException("'user' must not be empty");
-        }
-        if (password == null || password.isEmpty()) {
-            throw new IllegalArgumentException("'password' must not be empty");
-        }
         if (repositoryUser == null || repositoryUser.isEmpty()) {
             throw new IllegalArgumentException("'repositoryUser' must not be empty");
         }
@@ -54,7 +47,14 @@ public class GitHubController {
         }
 
         // Initialize GitHubController client
-        client = GitHub.connectUsingPassword(user, password);
+        GitHub client;
+        if (oauth != null && !oauth.isEmpty()) {
+            client = GitHub.connectUsingOAuth(oauth);
+        } else if (user != null && password != null && !user.isEmpty() && !password.isEmpty()) {
+            client = GitHub.connectUsingPassword(user, password);
+        } else {
+            throw new IllegalArgumentException("No credentials set");
+        }
 
         repository = client.getRepository(repositoryUser + "/" + repositoryName);
 
@@ -64,6 +64,28 @@ public class GitHubController {
 
     public boolean isConnected() {
         return isConnected;
+    }
+
+    /**
+     * Set OAuth token to authenticate with GitHub
+     *
+     * @param oauth token
+     */
+    public void setOauth(String oauth) {
+        assert (!isConnected && user == null && password == null);
+        this.oauth = oauth;
+    }
+
+    /**
+     * Set credentials used to authenticate with GitHub
+     *
+     * @param user     GitHub username
+     * @param password GitHub password
+     */
+    public void setCredentials(String user, String password) {
+        assert (!isConnected && oauth == null);
+        this.user = user;
+        this.password = password;
     }
 
 

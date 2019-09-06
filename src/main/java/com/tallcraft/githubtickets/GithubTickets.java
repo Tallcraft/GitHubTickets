@@ -30,12 +30,14 @@ public final class GithubTickets extends JavaPlugin {
         // Read config values
         String user = config.getString("github.auth.username");
         String password = config.getString("github.auth.password");
+        String oauth = config.getString("github.auth.oauth");
         String repositoryUser = config.getString("github.repository.user");
         String repositoryName = config.getString("github.repository.repoName");
         int minWordCount = config.getInt("ticketMinWordCount");
 
         // Validate config options
-        if (isUnset(user) || isUnset(password) || isUnset(repositoryUser) || isUnset(repositoryName)) {
+
+        if (isUnset(oauth) && ((isUnset(user)) || isUnset(password)) || isUnset(repositoryUser) || isUnset(repositoryName)) {
             logger.info("Missing GitHub configuration. Please add it in config.yml. Disabling.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -49,7 +51,12 @@ public final class GithubTickets extends JavaPlugin {
 
         // Connect to github repo
         try {
-            gitHubController.connect(user, password, repositoryUser, repositoryName, this);
+            if (!isUnset(oauth)) {
+                gitHubController.setOauth(oauth);
+            } else {
+                gitHubController.setCredentials(user, password);
+            }
+            gitHubController.connect(repositoryUser, repositoryName);
         } catch (IOException ex) {
             logger.info("Error while connecting to GitHub");
             ex.printStackTrace();
@@ -84,6 +91,7 @@ public final class GithubTickets extends JavaPlugin {
 
         githubAuth.set("username", "");
         githubAuth.set("password", "");
+        githubAuth.set("oauth", "");
 
         githubRepo.set("user", "");
         githubRepo.set("repoName", "");
