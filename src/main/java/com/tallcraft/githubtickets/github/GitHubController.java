@@ -2,20 +2,11 @@ package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.GithubTickets;
 import com.tallcraft.githubtickets.ticket.Ticket;
-import org.eclipse.egit.github.core.Issue;
-import org.eclipse.egit.github.core.Repository;
-import org.eclipse.egit.github.core.client.GitHubClient;
-import org.eclipse.egit.github.core.client.RequestException;
-import org.eclipse.egit.github.core.service.IssueService;
-import org.eclipse.egit.github.core.service.RepositoryService;
+import org.kohsuke.github.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
+
 
 /**
  * Interfaces between this application and GitHub API
@@ -23,14 +14,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class GitHubController {
     private static GitHubController ourInstance = new GitHubController();
     private static IssueConverter issueConverter = IssueConverter.getInstance();
-    private GitHubClient client;
-    private RepositoryService repService;
-    private IssueService issueService;
-    private Repository repository;
+
+
+    private GitHub client;
+    private GHRepository repository;
+
+
     // Boolean to store current connection state to api
     private boolean isConnected = false;
-    private LinkedBlockingQueue<Runnable> apiTasks;
-    private ApiWorker apiWorker;
 
     public static GitHubController getInstance() {
         return ourInstance;
@@ -45,7 +36,10 @@ public class GitHubController {
      * @param repositoryName Issue Repository Name
      * @throws IOException If an error occurs while establishing api connection
      */
-    public void connect(String user, String password, String repositoryUser, String repositoryName, int serverInstanceCount, GithubTickets plugin) throws IOException {
+    public void connect(String user, String password, String repositoryUser, String repositoryName, GithubTickets plugin) throws IOException {
+        assert (client == null);
+        assert (!isConnected);
+
         if (user == null || user.isEmpty()) {
             throw new IllegalArgumentException("'user' must not be empty");
         }
@@ -60,122 +54,16 @@ public class GitHubController {
         }
 
         // Initialize GitHubController client
-        client = new GitHubClient();
-        client.setCredentials(user, password);
+        client = GitHub.connectUsingPassword(user, password);
 
-        // Get repository service
-        repService = new RepositoryService(client);
-
-        // Get issue service
-        issueService = new IssueService(client);
-
-        repository = repService.getRepository(repositoryUser, repositoryName);
+        repository = client.getRepository(repositoryUser + "/" + repositoryName);
 
         // Set api connection status flag
         isConnected = true;
-
-        // Initialize api tasks
-        apiTasks = new LinkedBlockingQueue<>();
-
-        // Initialize api worker with tasks and delay settings
-        apiWorker = new ApiWorker(apiTasks, 2000 * serverInstanceCount);
-
-        // Start async worker for api requests
-        apiWorker.runTaskAsynchronously(plugin);
     }
 
     public boolean isConnected() {
         return isConnected;
-    }
-
-    /**
-     * Create Issue on Github from Ticket
-     * API Call is async
-     *
-     * @param ticket Ticket data to create issue with
-     * @return Future which resolves with ticket id or exception
-     */
-    public Future<Integer> createTicket(Ticket ticket) {
-        CompletableFuture<Integer> future = new CompletableFuture<>();
-        // Create async task
-        Runnable task = () -> {
-            try {
-                future.complete(createTicketSync(ticket));
-            } catch (IOException e) {
-                // Forward exception to future
-                future.completeExceptionally(e);
-            }
-        };
-        // Add api call to tasks list
-        apiTasks.add(task);
-        return future;
-    }
-
-    /**
-     * Get GitHub issue by id
-     *
-     * @param id ID to query for
-     * @return Future resolving with Ticket or exception
-     */
-    public Future<Ticket> getTicket(int id) {
-        CompletableFuture<Ticket> future = new CompletableFuture<>();
-        // Create async task
-        Runnable task = () -> {
-            try {
-                future.complete(getTicketSync(id));
-            } catch (IOException e) {
-                // Forward exception to future
-                future.completeExceptionally(e);
-            }
-        };
-        // Add api call to tasks list
-        apiTasks.add(task);
-        return future;
-    }
-
-
-    /**
-     * Get a list of open tickets
-     *
-     * @return Future which resolves with ticket list or exception
-     */
-    public Future<List<Ticket>> getTickets() {
-        CompletableFuture<List<Ticket>> future = new CompletableFuture<>();
-        // Create async task
-        Runnable task = () -> {
-            try {
-                future.complete(getTicketsSync(false));
-            } catch (IOException e) {
-                // Forward exception to future
-                future.completeExceptionally(e);
-            }
-        };
-        // Add api call to tasks list
-        apiTasks.add(task);
-        return future;
-    }
-
-    /**
-     * Change status of ticket to either closed or open
-     *
-     * @param id   Ticket ID
-     * @param open true = open, false = closed
-     * @return true on success, false on ticket not found
-     */
-    public Future<Ticket> changeTicketStatus(int id, boolean open) {
-        CompletableFuture<Ticket> future = new CompletableFuture<>();
-        // Create async task
-        Runnable task = () -> {
-            try {
-                future.complete(changeTicketStatusSync(id, open));
-            } catch (IOException e) {
-                // Forward exception to future
-                future.completeExceptionally(e);
-            }
-        };
-        // Add api call to tasks list
-        apiTasks.add(task);
-        return future;
     }
 
 
@@ -187,20 +75,16 @@ public class GitHubController {
      * @return Ticket object which status was changed or null if ticket not found by id
      * @throws IOException API error
      */
-    private Ticket changeTicketStatusSync(int id, boolean open) throws IOException {
-        Issue issue;
-        try {
-            issue = issueService.getIssue(repository, id);
-        } catch (RequestException ex) {
-            // Don't throw not found exceptions, but return null issue
-            if (ex.getStatus() == 404) {
-                return null;
-            }
-            throw ex;
+    public Ticket changeTicketStatus(int id, boolean open) throws IOException {
+        GHIssue issue;
+
+        issue = repository.getIssue(id);
+        if (issue == null) {
+            return null;
         }
 
         // Change status of github issue and get updated issue object
-        issue = changeTicketStatus(issue, open);
+        changeTicketStatus(issue, open);
         // Convert issue object to ticket and return
         return issueConverter.issueToTicket(issue);
     }
@@ -213,17 +97,14 @@ public class GitHubController {
      * @return Issue / Ticket ID
      * @throws IOException If an error occurs during api communication
      */
-    private int createTicketSync(Ticket ticket) throws IOException {
+    public int createTicket(Ticket ticket) throws IOException {
         if (!isConnected) {
             throw new RuntimeException("Not connected to GitHub");
         }
 
         // Convert to issue object
-        Issue issue = issueConverter.ticketToIssue(ticket);
-
-        // API call to create issue
-        Issue createdIssue = issueService.createIssue(repository, issue);
-        return createdIssue.getNumber();
+        GHIssueBuilder issueBuilder = issueConverter.ticketToIssue(repository, ticket);
+        return issueBuilder.create().getNumber();
     }
 
 
@@ -234,17 +115,8 @@ public class GitHubController {
      * @return Ticket representation of GitHub issue with matching ID
      * @throws IOException If an error occurs during api communication
      */
-    private Ticket getTicketSync(int id) throws IOException {
-        try {
-            Issue issue = issueService.getIssue(repository, id);
-            return issueConverter.issueToTicket(issue);
-        } catch (RequestException ex) {
-            // Don't throw not found exceptions, but return null issue
-            if (ex.getStatus() == 404) {
-                return null;
-            }
-            throw ex;
-        }
+    public Ticket getTicket(int id) throws IOException {
+        return issueConverter.issueToTicket(repository.getIssue(id));
     }
 
 
@@ -255,9 +127,12 @@ public class GitHubController {
      * @param open  true = open, false = closed
      * @throws IOException API error
      */
-    private Issue changeTicketStatus(Issue issue, boolean open) throws IOException {
-        issue.setState(open ? IssueService.STATE_OPEN : IssueService.STATE_CLOSED);
-        return issueService.editIssue(repository, issue);
+    private void changeTicketStatus(GHIssue issue, boolean open) throws IOException {
+        if (open) {
+            issue.reopen();
+        } else {
+            issue.close();
+        }
     }
 
 
@@ -267,17 +142,8 @@ public class GitHubController {
      * @return list of tickets with state open
      * @throws IOException API error
      */
-    private List<Ticket> getTicketsSync(boolean filterOpen) throws IOException {
-        Map<String, String> issueFilters;
-
-        if (filterOpen) {
-            issueFilters = Map.of(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
-        } else {
-            issueFilters = new HashMap<>();
-        }
-
-        List<Issue> issues = issueService.getIssues(repository, issueFilters);
-
-        return issueConverter.issueToTicket(issues);
+    public List<Ticket> getTickets(boolean filterOpen) throws IOException {
+        GHIssueState state = filterOpen ? GHIssueState.OPEN : GHIssueState.ALL;
+        return issueConverter.issueToTicket(repository.getIssues(state));
     }
 }

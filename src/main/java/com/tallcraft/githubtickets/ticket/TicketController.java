@@ -1,15 +1,11 @@
 package com.tallcraft.githubtickets.ticket;
 
-import com.tallcraft.githubtickets.GithubTickets;
 import com.tallcraft.githubtickets.github.GitHubController;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 
+import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -22,30 +18,11 @@ public class TicketController {
     // Server name overwrite variable
     private String serverName;
 
-    // Stores open tickets
-    private ConcurrentHashMap<Integer, Ticket> tickets = new ConcurrentHashMap<>();
-
-    // Task that fetches new tickets from github
-    private BukkitTask fetchTickets;
-
 
     public static TicketController getInstance() {
         return ourInstance;
     }
 
-    /**
-     * Initialize TicketController
-     * Starts ticket fetcher
-     *
-     * @param plugin Plugin object to register runnables with
-     */
-    public void init(GithubTickets plugin) {
-        // Only start once
-        if (fetchTickets != null) {
-            throw new RuntimeException("Controller init was called but already initialized");
-        }
-        fetchTickets = new TicketFetcher(tickets).runTaskTimerAsynchronously(plugin, 20, 10 * 20);
-    }
 
     /**
      * Set server name
@@ -62,8 +39,7 @@ public class TicketController {
      * @param ticket Ticket Object
      * @return Ticket ID
      */
-    private Future<Integer> createTicket(Ticket ticket) {
-        if (serverName != null) ticket.setServerName(serverName);
+    private int createTicket(Ticket ticket) throws IOException {
         return githubController.createTicket(ticket);
     }
 
@@ -73,9 +49,9 @@ public class TicketController {
      * @param player    Name of player who created the ticket
      * @param timestamp Time of ticket creation
      * @param message   Ticket message
-     * @return Future with Ticket ID
+     * @return Ticket ID
      */
-    public Future<Integer> createTicket(Player player, Date timestamp, String message) {
+    public int createTicket(Player player, Date timestamp, String message) throws IOException {
         org.bukkit.Location l = player.getLocation();
         Location playerLocation = new Location(l.getBlockX(), l.getBlockY(), l.getBlockZ());
 
@@ -92,9 +68,9 @@ public class TicketController {
      * @param worldName  Name of world ticket was created in
      * @param location   Location ticket was created in
      * @param body       Ticket text
-     * @return Future with Ticket ID
+     * @return Ticket ID
      */
-    private Future<Integer> createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) {
+    private int createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) throws IOException {
         // If server name is set in ticket controller overwrite server getter
         String serverNameOverride = this.serverName == null ? serverName : this.serverName;
         Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverNameOverride, worldName, location, body);
@@ -107,7 +83,7 @@ public class TicketController {
      * @param id Ticket ID
      * @return ticket object modified, or null if not found
      */
-    public Future<Ticket> openTicket(int id) {
+    public Ticket openTicket(int id) throws IOException {
         return changeTicketStatus(id, true);
     }
 
@@ -117,7 +93,7 @@ public class TicketController {
      * @param id Ticket ID
      * @return ticket object modified, or null if not found
      */
-    public Future<Ticket> closeTicket(int id) {
+    public Ticket closeTicket(int id) throws IOException {
         return changeTicketStatus(id, false);
     }
 
@@ -128,45 +104,23 @@ public class TicketController {
      * @param open true = open, false = closed
      * @return ticket object modified, or null if not found
      */
-    public Future<Ticket> changeTicketStatus(int id, boolean open) {
-        // TODO: also wait for future and update ticket in local cache
+    public Ticket changeTicketStatus(int id, boolean open) throws IOException {
         return githubController.changeTicketStatus(id, open);
     }
 
-    /**
-     * Get Ticket by ID
-     *
-     * @param id ticket id to query for.
-     * @return Ticket matching id
-     */
-    private Future<Ticket> getTicketNoCache(int id) {
+
+    public Ticket getTicket(int id) throws IOException {
         return githubController.getTicket(id);
     }
 
     /**
-     * Get a list of open tickets
-     *
-     * @return Future which resolves with ticket list or exception
-     */
-    private Future<List<Ticket>> getOpenTicketsNoCache() {
-        return githubController.getTickets();
-    }
-
-    public CompletableFuture<Ticket> getTicket(int id) {
-        return CompletableFuture.supplyAsync(() -> tickets.get(id));
-    }
-
-    /**
-     * Get a list of open tickets from cache sorted by id
+     * Get a list of open tickets sorted by id
      *
      * @return List of open tickets
      */
-    public CompletableFuture<List<Ticket>> getOpenTickets() {
-        // Filter by state = open, sort by id reverse and return as list
-        return CompletableFuture.supplyAsync(() ->
-                tickets.values().stream()
-                .filter(Ticket::isOpen)
+    public List<Ticket> getOpenTickets() throws IOException {
+        return githubController.getTickets(true).stream()
                 .sorted(Comparator.comparing(Ticket::getId).reversed())
-                        .collect(Collectors.toCollection(LinkedList::new)));
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 }

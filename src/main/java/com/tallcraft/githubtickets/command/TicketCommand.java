@@ -15,10 +15,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class TicketCommand implements CommandExecutor {
@@ -28,8 +28,6 @@ public class TicketCommand implements CommandExecutor {
     private GithubTickets plugin;
 
     private int minWordCount;
-
-    // TODO: for all async / rate limited calls: list of players, add to it if player called something, remove it when result is there. this prevents multiple ongoing calls by player
 
     public TicketCommand(GithubTickets plugin, int minWordCount) {
         this.plugin = plugin;
@@ -92,44 +90,37 @@ public class TicketCommand implements CommandExecutor {
             return true;
         }
 
-        // Select command task depending on args
-        AsyncCmdTask task = new AsyncCmdTask();
-
         switch (args[0].toLowerCase()) {
             case "show":
                 if (!hasPerm(sender, "show.self") && !hasPerm(sender, "show.all"))
                     return noPerm(sender, command);
-                task.setTask(showTicket(sender, command, args));
+                showTicket(sender, command, args);
                 break;
             case "tp":
                 if (!hasPerm(sender, "tp")) return noPerm(sender, command);
-                task.setTask(teleportTicket(sender, args));
+                teleportTicket(sender, args);
                 break;
             case "create":
                 if (!hasPerm(sender, "create")) return noPerm(sender, command);
-                task.setTask(createTicket(sender, args));
+                createTicket(sender, args);
                 break;
             case "list":
                 if (!hasPerm(sender, "list")) return noPerm(sender, command);
-                task.setTask(showTicketList(sender, args));
+                showTicketList(sender, args);
                 break;
             case "close":
                 if (!hasPerm(sender, "close.self") && !hasPerm(sender, "close.all"))
                     return noPerm(sender, command);
-                task.setTask(changeTicketStatus(sender, command, args, false));
+                changeTicketStatus(sender, command, args, false);
                 break;
             case "reopen":
                 if (!hasPerm(sender, "reopen.self") && !hasPerm(sender, "reopen.all"))
                     return noPerm(sender, command);
-                task.setTask(changeTicketStatus(sender, command, args, true));
+                changeTicketStatus(sender, command, args, true);
                 break;
             default:
-                task.setTask(() -> {
-                    showHelp(sender, label);
-                });
+                showHelp(sender, label);
         }
-
-        task.runTaskAsynchronously(plugin);
 
         return true;
     }
@@ -195,46 +186,41 @@ public class TicketCommand implements CommandExecutor {
      * @param open   true = open ticket, false = close ticket
      * @return async task
      */
-    private Runnable changeTicketStatus(CommandSender sender, Command command, String[] args, boolean open) {
-        return () -> {
+    private void changeTicketStatus(CommandSender sender, Command command, String[] args, boolean open) {
+        if (args.length < 2) {
+            sender.sendMessage("Missing ticket id");
+            return;
+        }
 
-            if (args.length < 2) {
-                sender.sendMessage("Missing ticket id");
+        int id;
+
+        // Parse ticket id
+        try {
+            id = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage("Invalid ticket id!");
+            return;
+        }
+
+        sender.sendMessage("Ticket change submitted...");
+
+        try {
+            Ticket ticket = ticketController.changeTicketStatus(id, open);
+            if (ticket == null) {
+                sender.sendMessage("Ticket not found.");
                 return;
             }
-
-            int id;
-
-            // Parse ticket id
-            try {
-                id = Integer.parseInt(args[1]);
-            } catch (NumberFormatException ex) {
-                sender.sendMessage("Invalid ticket id!");
-                return;
+            if (hasPerm(sender, "close.all") || hasPerm(sender, "reopen.all")
+                    || !(sender instanceof Player)
+                    || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
+                sender.sendMessage("Ticket #" + id + " " + (open ? "reopened" : "closed") + ".");
+            } else {
+                noPerm(sender, command);
             }
-
-            sender.sendMessage("Ticket change submitted...");
-
-            try {
-                Ticket ticket = ticketController.changeTicketStatus(id, open).get();
-                if (ticket == null) {
-                    sender.sendMessage("Ticket not found.");
-                    return;
-                }
-                if (hasPerm(sender, "close.all") || hasPerm(sender, "reopen.all")
-                        || !(sender instanceof Player)
-                        || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
-                    sender.sendMessage("Ticket #" + id + " " + (open ? "reopened" : "closed") + ".");
-                } else {
-                    noPerm(sender, command);
-                }
-
-
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                sender.sendMessage("Error while changing ticket state");
-            }
-        };
+        } catch (IOException e) {
+            e.printStackTrace();
+            sender.sendMessage("Error while changing ticket state");
+        }
     }
 
     /**
@@ -244,45 +230,43 @@ public class TicketCommand implements CommandExecutor {
      * @param args   command arguments
      * @return async task
      */
-    private Runnable showTicket(CommandSender sender, Command command, String[] args) {
-        return () -> {
-            if (args.length < 2) {
-                sender.sendMessage("Missing ticket id");
-                return;
-            }
+    private void showTicket(CommandSender sender, Command command, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("Missing ticket id");
+            return;
+        }
 
-            int id;
+        int id;
 
-            // Parse ticket id
-            try {
-                id = Integer.parseInt(args[1]);
-            } catch (NumberFormatException ex) {
-                sender.sendMessage("Invalid ticket id!");
-                return;
-            }
+        // Parse ticket id
+        try {
+            id = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage("Invalid ticket id!");
+            return;
+        }
 
-            // Get ticket from GitHub by id
-            Ticket ticket = null;
-            try {
-                ticket = ticketController.getTicket(id).get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                sender.sendMessage("Error while fetching ticket");
-            }
-            if (ticket == null) {
-                sender.sendMessage("Ticket not found.");
-                return;
-            }
-            // Check if player has permission to show specific ticket (own vs all perm)
-            if (hasPerm(sender, "show.all")
-                    || !(sender instanceof Player)
-                    || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
-                sender.spigot().sendMessage(ticket.toChat());
-                sender.sendMessage("");
-            } else {
-                noPerm(sender, command);
-            }
-        };
+        // Get ticket from GitHub by id
+        Ticket ticket = null;
+        try {
+            ticket = ticketController.getTicket(id);
+        } catch (IOException e) {
+            e.printStackTrace();
+            sender.sendMessage("Error while fetching ticket");
+        }
+        if (ticket == null) {
+            sender.sendMessage("Ticket not found.");
+            return;
+        }
+        // Check if player has permission to show specific ticket (own vs all perm)
+        if (hasPerm(sender, "show.all")
+                || !(sender instanceof Player)
+                || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
+            sender.spigot().sendMessage(ticket.toChat());
+            sender.sendMessage("");
+        } else {
+            noPerm(sender, command);
+        }
     }
 
     /**
@@ -290,21 +274,18 @@ public class TicketCommand implements CommandExecutor {
      *
      * @param sender Source of the command
      * @param args   command arguments
-     * @return async task
      */
-    private Runnable showTicketList(CommandSender sender, String[] args) {
-        return () -> {
-            List<Ticket> ticketList;
-            try {
-                ticketList = ticketController.getOpenTickets().get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                sender.sendMessage("Error while fetching ticket list");
-                return;
-            }
-            sender.spigot().sendMessage(ticketListHeading);
-            sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
-        };
+    private void showTicketList(CommandSender sender, String[] args) {
+        List<Ticket> ticketList;
+        try {
+            ticketList = ticketController.getOpenTickets();
+        } catch (IOException e) {
+            e.printStackTrace();
+            sender.sendMessage("Error while fetching ticket list");
+            return;
+        }
+        sender.spigot().sendMessage(ticketListHeading);
+        sender.spigot().sendMessage(Ticket.ticketListToChat(ticketList));
     }
 
     /**
@@ -314,37 +295,37 @@ public class TicketCommand implements CommandExecutor {
      * @param args   Command arguments
      * @return async task
      */
-    private Runnable teleportTicket(CommandSender sender, String[] args) {
-        return () -> {
-            if (args.length < 2) {
-                sender.sendMessage("Missing ticket id");
-                return;
-            }
+    private void teleportTicket(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("Missing ticket id");
+            return;
+        }
 
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("Only players may use this command.");
-                return;
-            }
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Only players may use this command.");
+            return;
+        }
 
-            // Cast to player so we can teleport
-            Player player = (Player) sender;
+        // Cast to player so we can teleport
+        Player player = (Player) sender;
 
-            int id;
+        int id;
 
-            // Parse ticket id
-            try {
-                id = Integer.parseInt(args[1]);
-            } catch (NumberFormatException ex) {
-                sender.sendMessage("Invalid ticket id!");
-                return;
-            }
+        // Parse ticket id
+        try {
+            id = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage("Invalid ticket id!");
+            return;
+        }
 
+        Bukkit.getScheduler().runTask(plugin, () -> {
             Ticket ticket;
 
             // Get ticket from GitHub by id
             try {
-                ticket = ticketController.getTicket(id).get();
-            } catch (InterruptedException | ExecutionException e) {
+                ticket = ticketController.getTicket(id);
+            } catch (IOException e) {
                 e.printStackTrace();
                 sender.sendMessage("Error while fetching ticket");
                 return;
@@ -367,7 +348,7 @@ public class TicketCommand implements CommandExecutor {
 
             sender.sendMessage("Teleporting to ticket #" + ticket.getId());
             player.teleport(location);
-        };
+        });
     }
 
     /**
@@ -377,32 +358,30 @@ public class TicketCommand implements CommandExecutor {
      * @param args   command arguments
      * @return async task
      */
-    private Runnable createTicket(CommandSender sender, String[] args) {
-        return () -> {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("Console not supported (yet)");
-                return;
-            }
-            // Join args to form string for ticket message
-            String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
+    private void createTicket(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Console not supported (yet)");
+            return;
+        }
+        // Join args to form string for ticket message
+        String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
 
-            if (!testBody(message)) {
-                sender.sendMessage("Invalid ticket message");
-                return;
-            }
+        if (!testBody(message)) {
+            sender.sendMessage("Invalid ticket message");
+            return;
+        }
 
-            sender.sendMessage("Ticket submitted...");
+        sender.sendMessage("Ticket submitted...");
 
-            long ticketID;
-            try {
-                ticketID = ticketController.createTicket((Player) sender, new Date(), message).get();
-            } catch (InterruptedException | ExecutionException e) {
-                sender.sendMessage("Error: Could not create ticket");
-                e.printStackTrace();
-                return;
-            }
-            sender.sendMessage("Created ticket #" + ticketID);
-        };
+        long ticketID;
+        try {
+            ticketID = ticketController.createTicket((Player) sender, new Date(), message);
+        } catch (IOException e) {
+            sender.sendMessage("Error: Could not create ticket");
+            e.printStackTrace();
+            return;
+        }
+        sender.sendMessage("Created ticket #" + ticketID);
     }
 
 }

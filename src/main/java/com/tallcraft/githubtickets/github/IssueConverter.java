@@ -2,11 +2,16 @@ package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.ticket.Location;
 import com.tallcraft.githubtickets.ticket.Ticket;
-import org.eclipse.egit.github.core.Issue;
-import org.eclipse.egit.github.core.Label;
-import org.eclipse.egit.github.core.service.IssueService;
+import org.kohsuke.github.GHIssue;
+import org.kohsuke.github.GHIssueBuilder;
+import org.kohsuke.github.GHIssueState;
+import org.kohsuke.github.GHRepository;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +38,7 @@ class IssueConverter {
      * @param key   Key of key-value pair
      * @return Extracted value
      */
-    private static String getValue(Issue issue, String key) {
+    private static String getValue(GHIssue issue, String key) {
         Pattern pattern = Pattern.compile(key + ": (.*)");
         Matcher matcher = pattern.matcher(issue.getBody());
 
@@ -49,7 +54,7 @@ class IssueConverter {
      * @param issue Issue to extract body text from
      * @return body text of issue without key value pairs
      */
-    private static String getTicketBody(Issue issue) {
+    private static String getTicketBody(GHIssue issue) {
         Matcher matcher = ticketBodyPattern.matcher(issue.getBody());
         if (matcher.find()) {
             return matcher.group(1);
@@ -63,17 +68,10 @@ class IssueConverter {
      * @param ticket Ticket object to convert
      * @return Issue object from ticket data
      */
-    Issue ticketToIssue(Ticket ticket) {
-        Issue issue = new Issue();
-        Label serverLabel = new Label();
-
-        issue.setLabels(new ArrayList<>(Collections.singletonList(serverLabel)));
-        issue.setTitle(getIssueTitle(ticket));
-        issue.setBody(getIssueBody(ticket));
-
-        serverLabel.setName("Server: " + ticket.getServerName());
-
-        return issue;
+    GHIssueBuilder ticketToIssue(GHRepository repository, Ticket ticket) {
+        return repository.createIssue(getIssueTitle(ticket))
+                .body(getIssueBody(ticket))
+                .label("Server: " + ticket.getServerName());
     }
 
     /**
@@ -82,12 +80,16 @@ class IssueConverter {
      * @param issue Issue Object to convert
      * @return Ticket object from issue data
      */
-    Ticket issueToTicket(Issue issue) {
+    Ticket issueToTicket(GHIssue issue) {
+        if (issue == null) {
+            return null;
+        }
+
         Ticket ticket = new Ticket();
 
         try {
             ticket.setId(issue.getNumber());
-            ticket.setOpen(issue.getState().equals(IssueService.STATE_OPEN));
+            ticket.setOpen(issue.getState().equals(GHIssueState.OPEN));
             ticket.setTimestamp(issue.getCreatedAt());
 
             String uuid = getValue(issue, "UUID");
@@ -105,7 +107,7 @@ class IssueConverter {
             ticket.setWorldName(getValue(issue, "World"));
             ticket.setLocation(Location.fromString(getValue(issue, "Location")));
             ticket.setBody(getTicketBody(issue));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IOException ex) {
             // Error while parsing ticket
             return null;
         }
@@ -118,9 +120,9 @@ class IssueConverter {
      * @param issues Issue objects to convert
      * @return Collection of tickets
      */
-    List<Ticket> issueToTicket(Collection<Issue> issues) {
+    List<Ticket> issueToTicket(Collection<GHIssue> issues) {
         List<Ticket> tickets = new LinkedList<>();
-        for (Issue issue : issues) {
+        for (GHIssue issue : issues) {
             Ticket ticket = issueToTicket(issue);
             if (ticket != null) tickets.add(ticket);
         }

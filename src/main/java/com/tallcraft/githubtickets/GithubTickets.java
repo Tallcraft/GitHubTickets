@@ -33,17 +33,12 @@ public final class GithubTickets extends JavaPlugin {
         String repositoryUser = config.getString("github.repository.user");
         String repositoryName = config.getString("github.repository.repoName");
         int minWordCount = config.getInt("ticketMinWordCount");
-        int serverInstanceCount = config.getInt("serverInstanceCount");
 
         // Validate config options
         if (isUnset(user) || isUnset(password) || isUnset(repositoryUser) || isUnset(repositoryName)) {
             logger.info("Missing GitHub configuration. Please add it in config.yml. Disabling.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
-        }
-        if (serverInstanceCount < 1) {
-            logger.info("Invalid config value for serverInstanceCount, must be 1 or greater. Defaulting to 1");
-            serverInstanceCount = 1;
         }
 
         // Servername overwrite
@@ -54,16 +49,13 @@ public final class GithubTickets extends JavaPlugin {
 
         // Connect to github repo
         try {
-            gitHubController.connect(user, password, repositoryUser, repositoryName, serverInstanceCount, this);
+            gitHubController.connect(user, password, repositoryUser, repositoryName, this);
         } catch (IOException ex) {
             logger.info("Error while connecting to GitHub");
             ex.printStackTrace();
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-
-        // Initialize ticket controller
-        ticketController.init(this);
 
         // Initialize and register commands
         TicketCommand ticketCommand = new TicketCommand(this, minWordCount);
