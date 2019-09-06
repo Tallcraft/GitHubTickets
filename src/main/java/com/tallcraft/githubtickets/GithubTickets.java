@@ -77,7 +77,6 @@ public final class GithubTickets extends JavaPlugin {
 
         defaultConfig.set("serverName", "");
         defaultConfig.set("ticketMinWordCount", 2);
-        defaultConfig.set("serverInstanceCount", 1);
 
         ConfigurationSection github = defaultConfig.createSection("github");
         ConfigurationSection githubAuth = github.createSection("auth");
