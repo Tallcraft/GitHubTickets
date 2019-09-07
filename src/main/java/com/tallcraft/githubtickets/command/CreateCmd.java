@@ -1,5 +1,8 @@
 package com.tallcraft.githubtickets.command;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -51,6 +54,12 @@ public class CreateCmd extends AsyncCommand {
             e.printStackTrace();
             return;
         }
-        reply("Created ticket #" + ticketID);
+        reply(new ComponentBuilder("Created ticket ")
+                .append("#" + ticketID)
+                .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        new ComponentBuilder("Show ticket").create()))
+                .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                        "/ticket show " + ticketID))
+                .create());
     }
 }
