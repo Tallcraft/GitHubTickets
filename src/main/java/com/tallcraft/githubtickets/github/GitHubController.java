@@ -159,13 +159,23 @@ public class GitHubController {
 
 
     /**
-     * Get a list of open tickets
+     * Get a list of tickets with matching open state
      *
-     * @return list of tickets with state open
+     * @param filterState ticket open state to filter for, true = open, false = closed
+     * @return list of tickets with desired state
      * @throws IOException API error
      */
-    public List<Ticket> getTickets(boolean filterOpen) throws IOException {
-        GHIssueState state = filterOpen ? GHIssueState.OPEN : GHIssueState.ALL;
+    public List<Ticket> getTickets(boolean filterState) throws IOException {
+        GHIssueState state = filterState ? GHIssueState.OPEN : GHIssueState.CLOSED;
         return issueConverter.issueToTicket(repository.getIssues(state));
+    }
+
+    /**
+     * Get a list of all tickets
+     * @return list of all tickets in repo
+     * @throws IOException API error
+     */
+    public List<Ticket> getTickets() throws IOException {
+        return issueConverter.issueToTicket(repository.getIssues(GHIssueState.ALL));
     }
 }

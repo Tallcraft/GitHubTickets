@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Interfaces between Bukkit plugin side and GitHub
@@ -119,8 +120,28 @@ public class TicketController {
      * @return List of open tickets
      */
     public List<Ticket> getOpenTickets() throws IOException {
-        return githubController.getTickets(true).stream()
-                .sorted(Comparator.comparing(Ticket::getId).reversed())
-                .collect(Collectors.toCollection(LinkedList::new));
+        return getTickets(true, false, false, null);
+    }
+
+    public List<Ticket> getTickets(boolean sorted, boolean filterStatus,
+                                   boolean status, UUID filterPlayerUUID) throws IOException {
+        List<Ticket> tickets;
+        if(filterStatus) {
+            tickets = githubController.getTickets(status);
+        } else {
+            tickets = githubController.getTickets();
+        }
+        if(!sorted && filterPlayerUUID == null) {
+            return tickets;
+        }
+        Stream<Ticket> ticketStream = tickets.stream();
+        if(sorted) {
+            ticketStream = ticketStream.sorted(Comparator.comparing(Ticket::getId).reversed());
+        }
+        if(filterPlayerUUID != null) {
+            ticketStream = ticketStream.filter((ticket) -> ticket.getPlayerUUID()
+                    .equals(filterPlayerUUID));
+        }
+        return ticketStream.collect(Collectors.toCollection(LinkedList::new));
     }
 }
