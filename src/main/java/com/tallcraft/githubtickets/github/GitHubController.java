@@ -56,7 +56,16 @@ public class GitHubController {
             throw new IllegalArgumentException("No credentials set");
         }
 
-        repository = client.getRepository(repositoryUser + "/" + repositoryName);
+        try {
+            repository = client.getRepository(repositoryUser + "/" + repositoryName);
+        } catch (GHFileNotFoundException ex) {
+            repository = client.createRepository(repositoryName)
+                    .private_(true)
+                    .issues(true)
+                    .description("Ticket repository powered by GitHubTickets. Click on 'Issues' to see a list of tickets")
+                    .autoInit(true)
+                    .create();
+        }
 
         // Set api connection status flag
         isConnected = true;
