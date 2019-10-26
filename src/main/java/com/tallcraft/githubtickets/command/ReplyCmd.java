@@ -57,9 +57,7 @@ public class ReplyCmd extends AsyncCommand {
                 return;
             }
 
-            runSync(() -> {
-                reply("Ticket reply submitted ...");
-            });
+            reply("Ticket reply submitted ...");
 
             // Trigger action
             TicketComment comment = ticketController.replyTicket(id, (Player) sender, message);
