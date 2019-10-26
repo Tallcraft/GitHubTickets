@@ -1,10 +1,12 @@
 package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.GithubTickets;
+import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 abstract class AsyncCommand extends BukkitRunnable {
@@ -55,7 +57,6 @@ abstract class AsyncCommand extends BukkitRunnable {
         runSync(this::noPermSync);
     }
 
-
     // Methods which must only be used in a sync context
 
     protected void replySync(String msg) {
@@ -72,5 +73,16 @@ abstract class AsyncCommand extends BukkitRunnable {
 
     protected boolean hasPermSync(String perm) {
         return executor.hasPerm(sender, perm);
+    }
+
+    protected boolean hasTicketPermissionSync(String basePermission, CommandSender sender, Ticket ticket) {
+        return
+                // Players with all permission
+                executor.hasPerm(sender, basePermission + ".all")
+                        // Console
+                        || !(sender instanceof Player)
+                        // Players with matching id and self permission
+                        || (executor.hasPerm(sender, basePermission + ".self")
+                        && ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID()));
     }
 }

@@ -15,9 +15,9 @@ public class Ticket {
     private static final ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
     private static final int ticketListTextLength = 60;
     // format locale and color settings
-    private static Locale locale = new Locale("en", "US");
-    private static DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
-    private static ChatColor chatKeyColor = ChatColor.GOLD;
+    static Locale locale = new Locale("en", "US");
+    static DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
+    static ChatColor chatKeyColor = ChatColor.GOLD;
     private static ChatColor ticketOpenColor = ChatColor.DARK_GREEN;
     private static ChatColor ticketClosedColor = ChatColor.DARK_RED;
     // Meta
@@ -227,6 +227,14 @@ public class Ticket {
         this.body = body;
     }
 
+    public LinkedList<TicketComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(LinkedList<TicketComment> comments) {
+        this.comments = comments;
+    }
+
     @Override
     public String toString() {
         return "Player: " + playerName + "\n"
@@ -249,12 +257,16 @@ public class Ticket {
         return isOpen ? "OPEN" : "CLOSED";
     }
 
+    public BaseComponent[] toChat() {
+        return toChat(true);
+    }
+
     /**
      * Conver Ticket to BaseComponent used for Minecraft chat output
      *
      * @return BaseComponent representing ticket
      */
-    public BaseComponent[] toChat() {
+    public BaseComponent[] toChat(boolean includeComments) {
         // Initialize main ticket component builder
         ComponentBuilder builder = new ComponentBuilder("");
 
@@ -295,6 +307,15 @@ public class Ticket {
 
         // Message
         builder.append("\n" + body, f);
+
+        // Comments
+        if (includeComments && !comments.isEmpty()) {
+            builder.append("\nComments >>>\n", f).bold(true).color(chatKeyColor);
+            comments.forEach(comment -> {
+                builder.append(comment.toChat(), f);
+                builder.append("\n", f);
+            });
+        }
 
         // Build and return as component
         return builder.create();

@@ -79,6 +79,10 @@ public class TicketCommandExecutor implements CommandExecutor {
                     if (!hasPerm(sender, "create")) return noPerm(sender, command);
                     cmd = new CreateCmd(minWordCount);
                     break;
+                case "reply":
+                    if (!hasPerm(sender, "reply")) return noPerm(sender, command);
+                    cmd = new ReplyCmd(minWordCount);
+                    break;
                 case "list":
                     if (!hasPerm(sender, "list")) return noPerm(sender, command);
                     cmd = new ListCmd();

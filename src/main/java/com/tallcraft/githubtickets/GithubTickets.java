@@ -57,6 +57,7 @@ public final class GithubTickets extends JavaPlugin {
                 gitHubController.setCredentials(user, password);
             }
             gitHubController.connect(repositoryUser, repositoryName);
+            logger.info("Connected to GitHub repository: " + repositoryUser + ":" + repositoryName);
         } catch (IOException ex) {
             logger.info("Error while connecting to GitHub");
             ex.printStackTrace();

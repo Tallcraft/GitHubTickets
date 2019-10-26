@@ -1,6 +1,7 @@
 package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
+import com.tallcraft.githubtickets.ticket.TicketComment;
 import org.kohsuke.github.*;
 
 import java.io.IOException;
@@ -138,6 +139,29 @@ public class GitHubController {
         return issueBuilder.create().getNumber();
     }
 
+    /**
+     * Reply to a ticket
+     *
+     * @param id      Ticket number
+     * @param comment comment to add to ticket
+     * @return created comment or null if ticket id not found
+     * @throws IOException If an error occurs during api communication
+     */
+    public boolean addTicketComment(int id, TicketComment comment) throws IOException {
+        String commentStr = issueConverter.ticketCommentToIssueCommentStr(comment);
+        GHIssue issue;
+        try {
+            issue = this.repository.getIssue(id);
+        } catch (GHFileNotFoundException ex) {
+            return false;
+        }
+        if (issue == null) {
+            return false;
+        }
+        issue.comment(commentStr);
+        return true;
+    }
+
 
     /**
      * Get Ticket by id
@@ -147,7 +171,12 @@ public class GitHubController {
      * @throws IOException If an error occurs during api communication
      */
     public Ticket getTicket(int id) throws IOException {
-        return issueConverter.issueToTicket(repository.getIssue(id));
+        try {
+            return issueConverter.issueToTicket(repository.getIssue(id));
+        } catch (GHFileNotFoundException ex) {
+            return null;
+        }
+
     }
 
 

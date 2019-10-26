@@ -22,6 +22,8 @@ permissions:
       githubtickets.create: true
       githubtickets.show.self: true
       githubtickets.show.all: true
+      githubtickets.reply.self: true
+      githubtickets.reply.all: true
       githubtickets.tp: true
       githubtickets.list: true
       githubtickets.close.self: true
@@ -33,6 +35,7 @@ permissions:
     default: false
     children:
       githubtickets.show.all: true
+      githubtickets.reply.all: true
       githubtickets.tp: true
       githubtickets.list: true
       githubtickets.close.all: true
@@ -45,6 +48,12 @@ permissions:
     default: true
   githubtickets.show.all:
     description: Show detailed ticket info for all tickets
+    default: false
+  githubtickets.reply.self:
+    description: Reply to self created tickets
+    default: true
+  githubtickets.reply.all:
+    description: Reply to all tickets
     default: false
   githubtickets.tp:
     description: Teleport to ticket locations

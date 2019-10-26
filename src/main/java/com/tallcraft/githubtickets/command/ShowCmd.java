@@ -1,7 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
-import org.bukkit.entity.Player;
 
 import java.io.IOException;
 
@@ -39,14 +38,12 @@ public class ShowCmd extends AsyncCommand {
         Ticket finalTicket = ticket;
         runSync(() -> {
             // Check if player has permission to show specific ticket (own vs all perm)
-            if (hasPermSync("show.all")
-                    || !(sender instanceof Player)
-                    || ((Player) sender).getUniqueId().equals(finalTicket.getPlayerUUID())) {
-                replySync(finalTicket.toChat());
-                replySync("");
-            } else {
+            if (!hasTicketPermissionSync("show", sender, finalTicket)) {
                 noPermSync();
+                return;
             }
+            replySync(finalTicket.toChat());
+            replySync("");
         });
     }
 }

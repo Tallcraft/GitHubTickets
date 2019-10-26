@@ -1,7 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
-import org.bukkit.entity.Player;
 
 import java.io.IOException;
 
@@ -30,22 +29,29 @@ public class StatusChangeCmd extends AsyncCommand {
             return;
         }
 
-        reply("Ticket change submitted...");
-
         try {
-            Ticket ticket = ticketController.changeTicketStatus(id, newStatus);
+            // Fetch ticket object by id
+            Ticket ticket = ticketController.getTicket(id);
+            if (ticket == null) {
+                sender.sendMessage("Ticket not found by id");
+                return;
+            }
+
+            // Ticket found => permission check
+            if (!hasTicketPermissionSync("reply", sender, ticket)) {
+                noPerm();
+                return;
+            }
+
+            reply("Ticket change submitted...");
+
+            ticket = ticketController.changeTicketStatus(id, newStatus);
             if (ticket == null) {
                 reply("Ticket not found.");
                 return;
             }
             runSync(() -> {
-                if (hasPermSync("close.all") || hasPermSync("reopen.all")
-                        || !(sender instanceof Player)
-                        || ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID())) {
-                    replySync("Ticket #" + id + " " + (newStatus ? "reopened" : "closed") + ".");
-                } else {
-                    noPermSync();
-                }
+                replySync("Ticket #" + id + " " + (newStatus ? "reopened" : "closed") + ".");
             });
         } catch (IOException e) {
             e.printStackTrace();

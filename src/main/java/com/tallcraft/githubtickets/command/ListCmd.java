@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 
 public class ListCmd extends AsyncCommand {
 
-    private static final BaseComponent[] ticketListHeading = new ComponentBuilder("Tickets >>>>>>").color(ChatColor.GOLD).bold(true).create();
+    private static final BaseComponent[] ticketListHeading =
+            new ComponentBuilder("Tickets >>>>>>").color(ChatColor.GOLD).bold(true).create();
 
     @Override
     public void run() {
+        reply("Fetching ticket list ...");
         List<Ticket> ticketList;
         try {
             ticketList = ticketController.getOpenTickets();

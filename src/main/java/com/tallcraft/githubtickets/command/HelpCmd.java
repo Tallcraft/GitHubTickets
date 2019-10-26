@@ -22,6 +22,12 @@ public class HelpCmd extends AsyncCommand {
                 builder.append(" Create a ticket", f).append("\n");
             }
 
+            if (executor.hasPerm(sender, "reply")) {
+                builder.append(baseCmd + " reply <ID> <Message>", f).color(ChatColor.GOLD)
+                        .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket reply "));
+                builder.append(" Reply to a ticket", f).append("\n");
+            }
+
             if (executor.hasPerm(sender, "list")) {
                 builder.append(baseCmd + " list", f).color(ChatColor.GOLD)
                         .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket list"));
