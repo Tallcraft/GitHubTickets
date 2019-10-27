@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
+import com.tallcraft.githubtickets.Util;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketComment;
 import org.bukkit.entity.Player;
@@ -65,7 +66,14 @@ public class ReplyCmd extends AsyncCommand {
                 reply("Ticket #" + id + " not found.");
                 return;
             }
-            reply(ticket.toChat());
+            Ticket finalTicket = ticket;
+            Util.run(plugin, false, () -> {
+                if(hasTicketPermissionSync("show", sender, finalTicket)) {
+                    replySync(finalTicket.toChat());
+                } else {
+                    replySync("Added reply for ticket #" + id);
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
             reply("Error while adding reply to ticket #" + id);
