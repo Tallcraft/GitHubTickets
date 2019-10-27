@@ -60,6 +60,7 @@ public final class GithubTickets extends JavaPlugin implements Listener {
             }
             gitHubController.connect(repositoryUser, repositoryName);
             logger.info("Connected to GitHub repository: " + repositoryUser + ":" + repositoryName);
+            logger.info(gitHubController.getRateLimitInfo());
         } catch (IOException ex) {
             logger.info("Error while connecting to GitHub");
             ex.printStackTrace();

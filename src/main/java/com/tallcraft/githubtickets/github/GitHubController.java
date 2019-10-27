@@ -21,6 +21,7 @@ public class GitHubController {
     private String password;
     private String oauth;
 
+    private GitHub client;
     private GHRepository repository;
 
     // Boolean to store current api connection state
@@ -48,7 +49,6 @@ public class GitHubController {
         }
 
         // Initialize GitHubController client
-        GitHub client;
         if (oauth != null && !oauth.isEmpty()) {
             client = GitHub.connectUsingOAuth(oauth);
         } else if (user != null && password != null && !user.isEmpty() && !password.isEmpty()) {
@@ -96,6 +96,20 @@ public class GitHubController {
         assert (!isConnected && oauth == null);
         this.user = user;
         this.password = password;
+    }
+
+    public String getRateLimitInfo() {
+        if (!isConnected || client == null) {
+            return null;
+        }
+        GHRateLimit rateLimit;
+        try {
+            rateLimit = client.getRateLimit();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return rateLimit.toString();
     }
 
 
