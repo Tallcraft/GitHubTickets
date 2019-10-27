@@ -135,7 +135,13 @@ public class Ticket {
         ComponentBuilder ticketHoverText = new ComponentBuilder("");
         ticketHoverText.append("Ticket #" + id + "\n").color(chatKeyColor)
                 .append(playerName, f).bold(true).append("\n")
-                .append(body, f).append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
+                .append(body, f);
+        int commentCount = comments.size();
+        if (commentCount > 0) {
+            ticketHoverText.append("\n\nComments: ", f).color(chatKeyColor)
+                    .append(Integer.toString(commentCount), f);
+        }
+        ticketHoverText.append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
         return new HoverEvent(HoverEvent.Action.SHOW_TEXT, ticketHoverText.create());
     }
 
