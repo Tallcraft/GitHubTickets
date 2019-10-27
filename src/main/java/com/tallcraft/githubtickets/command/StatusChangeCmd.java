@@ -50,9 +50,7 @@ public class StatusChangeCmd extends AsyncCommand {
                 reply("Ticket not found.");
                 return;
             }
-            runSync(() -> {
-                replySync("Ticket #" + id + " " + (newStatus ? "reopened" : "closed") + ".");
-            });
+            reply("Ticket #" + id + " " + (newStatus ? "reopened" : "closed") + ".");
         } catch (IOException e) {
             e.printStackTrace();
             reply("Error while changing ticket state");

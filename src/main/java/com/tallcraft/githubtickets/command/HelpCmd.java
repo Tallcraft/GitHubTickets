@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
+import com.tallcraft.githubtickets.Util;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -8,7 +9,7 @@ public class HelpCmd extends AsyncCommand {
 
     @Override
     public void run() {
-        runSync(() -> {
+        Util.run(plugin, false, () -> {
             ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
             ComponentBuilder builder = new ComponentBuilder("");
 

@@ -1,6 +1,7 @@
 package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.GithubTickets;
+import com.tallcraft.githubtickets.Util;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -29,33 +30,18 @@ abstract class AsyncCommand extends BukkitRunnable {
         this.args = args;
     }
 
-    /**
-     * Run a task in synchronously, it will be scheduled by Bukkit.
-     *
-     * @param task
-     */
-    // TODO: use Util.run instead
-    protected void runSync(Runnable task) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }.runTask(plugin);
-    }
-
     // Methods which can run in an async context
 
     protected void reply(String msg) {
-        runSync(() -> replySync(msg));
+        Util.run(plugin, false, () -> replySync(msg));
     }
 
     protected void reply(BaseComponent[] msg) {
-        runSync(() -> replySync(msg));
+        Util.run(plugin, false, () -> replySync(msg));
     }
 
     protected void noPerm() {
-        runSync(this::noPermSync);
+        Util.run(plugin, false, this::noPermSync);
     }
 
     // Methods which must only be used in a sync context

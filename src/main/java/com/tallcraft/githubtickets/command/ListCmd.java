@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
+import com.tallcraft.githubtickets.Util;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -26,7 +27,7 @@ public class ListCmd extends AsyncCommand {
             reply("Error while fetching ticket list");
             return;
         }
-        runSync(() -> {
+        Util.run(plugin, false, () -> {
             replySync(ticketListHeading);
             if (sender instanceof Player && !hasPermSync("show.all")) {
                 Player player = (Player) sender;

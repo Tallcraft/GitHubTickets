@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
+import com.tallcraft.githubtickets.Util;
 import com.tallcraft.githubtickets.ticket.Ticket;
 
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class ShowCmd extends AsyncCommand {
             return;
         }
         Ticket finalTicket = ticket;
-        runSync(() -> {
+        Util.run(plugin, false, () -> {
             // Check if player has permission to show specific ticket (own vs all perm)
             if (!hasTicketPermissionSync("show", sender, finalTicket)) {
                 noPermSync();

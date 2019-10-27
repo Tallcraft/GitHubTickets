@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
+import com.tallcraft.githubtickets.Util;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -45,7 +46,7 @@ public class TeleportCmd extends AsyncCommand {
             reply("Error while fetching ticket");
             return;
         }
-        runSync(() -> {
+        Util.run(plugin, false, () -> {
             if (ticket == null) {
                 replySync("Ticket not found.");
                 return;
