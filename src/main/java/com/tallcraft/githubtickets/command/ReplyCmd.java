@@ -60,13 +60,12 @@ public class ReplyCmd extends AsyncCommand {
             reply("Ticket reply submitted ...");
 
             // Trigger action
-            TicketComment comment = ticketController.replyTicket(id, (Player) sender, message);
-            if (comment == null) {
+            ticket = ticketController.replyTicket(id, (Player) sender, message);
+            if (ticket == null) {
                 reply("Ticket #" + id + " not found.");
                 return;
             }
-            reply("You replied to Ticket #" + id + ":");
-            reply(comment.getBody());
+            reply(ticket.toChat());
         } catch (IOException e) {
             e.printStackTrace();
             reply("Error while adding reply to ticket #" + id);

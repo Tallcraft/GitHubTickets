@@ -5,6 +5,7 @@ import com.tallcraft.githubtickets.ticket.TicketComment;
 import org.kohsuke.github.*;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 
@@ -158,22 +159,27 @@ public class GitHubController {
      *
      * @param id      Ticket number
      * @param comment comment to add to ticket
-     * @return created comment or null if ticket id not found
+     * @return modified ticket or null if ticket id not found
      * @throws IOException If an error occurs during api communication
      */
-    public boolean addTicketComment(int id, TicketComment comment) throws IOException {
+    public Ticket addTicketComment(int id, TicketComment comment) throws IOException {
         String commentStr = issueConverter.ticketCommentToIssueCommentStr(comment);
         GHIssue issue;
         try {
             issue = this.repository.getIssue(id);
         } catch (GHFileNotFoundException ex) {
-            return false;
+            return null;
         }
         if (issue == null) {
-            return false;
+            return null;
         }
         issue.comment(commentStr);
-        return true;
+
+        // While fetching the ticket again from the API would give us more accurate data,
+        // we'd have to make another API call, which is costly.
+        // Mock the timestamp and return the ticket.
+        comment.setTimestamp(new Date());
+        return issueConverter.issueToTicket(issue);
     }
 
 

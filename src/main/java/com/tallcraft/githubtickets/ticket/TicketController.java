@@ -78,12 +78,9 @@ public class TicketController {
         return createTicket(ticket);
     }
 
-    public TicketComment replyTicket(int id, Player player, String message) throws IOException {
+    public Ticket replyTicket(int id, Player player, String message) throws IOException {
         TicketComment comment = new TicketComment(null, player.getUniqueId(), player.getDisplayName(), message);
-        if (!githubController.addTicketComment(id, comment)) {
-            return null;
-        }
-        return comment;
+        return githubController.addTicketComment(id, comment);
     }
 
     /**

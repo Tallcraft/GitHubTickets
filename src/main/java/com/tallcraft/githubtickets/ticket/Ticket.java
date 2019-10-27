@@ -315,12 +315,20 @@ public class Ticket {
         builder.append("\n" + body, f);
 
         // Comments
-        if (includeComments && !comments.isEmpty()) {
-            builder.append("\nComments >>>\n", f).bold(true).color(chatKeyColor);
-            comments.forEach(comment -> {
-                builder.append(comment.toChat(), f);
-                builder.append("\n", f);
-            });
+        if (includeComments) {
+            builder.append("\nComments >>>\n", f).bold(true).color(chatKeyColor)
+                    .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
+                            "/ticket reply " + id + " "))
+                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                            new ComponentBuilder("Click to reply").create()));
+            if(comments.isEmpty()) {
+                builder.append("None", f).color(chatKeyColor);
+            } else {
+                comments.forEach(comment -> {
+                    builder.append(comment.toChat(), f);
+                    builder.append("\n", f);
+                });
+            }
         }
 
         // Build and return as component
