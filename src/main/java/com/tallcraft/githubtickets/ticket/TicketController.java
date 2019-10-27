@@ -128,7 +128,7 @@ public class TicketController {
      * @return List of open tickets
      */
     public List<Ticket> getOpenTickets() throws IOException {
-        return getTickets(true, false, false, null);
+        return getTickets(true, true, true, null);
     }
 
     public List<Ticket> getTickets(boolean sorted, boolean filterStatus,
