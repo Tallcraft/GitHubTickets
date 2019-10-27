@@ -149,9 +149,9 @@ public class GitHubController {
             throw new RuntimeException("Not connected to GitHub");
         }
 
-        // Convert to issue object
-        GHIssueBuilder issueBuilder = issueConverter.ticketToIssue(repository, ticket);
-        return issueBuilder.create().getNumber();
+        // Convert to issue object and push to repo
+        GHIssue issue = issueConverter.ticketToIssue(repository, ticket);
+        return issue.getNumber();
     }
 
     /**

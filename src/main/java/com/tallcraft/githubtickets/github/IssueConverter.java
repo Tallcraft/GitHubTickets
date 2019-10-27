@@ -64,12 +64,23 @@ class IssueConverter {
      * @param ticket Ticket object to convert
      * @return Issue object from ticket data
      */
-    GHIssueBuilder ticketToIssue(GHRepository repository, Ticket ticket) {
-        return repository.createIssue(getIssueTitle(ticket))
+    GHIssue ticketToIssue(GHRepository repository, Ticket ticket) throws IOException {
+        GHIssue issue =  repository.createIssue(getIssueTitle(ticket))
                 .body(getIssueBody(ticket))
-                .label("Server: " + ticket.getServerName());
+                .label("Server: " + ticket.getServerName()).create();
+        if(issue == null) {
+            return null;
+        }
 
-        // TODO: add comments
+        ticket.getComments().forEach(ticketComment -> {
+            try {
+                issue.comment(ticketCommentToIssueCommentStr(ticketComment));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        return issue;
     }
 
     /**
