@@ -7,14 +7,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.util.logging.Logger;
 
-public final class GithubTickets extends JavaPlugin {
+public final class GithubTickets extends JavaPlugin implements Listener {
     private static final GitHubController gitHubController = GitHubController.getInstance();
     private static final TicketController ticketController = TicketController.getInstance();
+    private static final TicketNotifier ticketNotifier = TicketNotifier.getInstance();
     private final Logger logger = Logger.getLogger(this.getName());
     private FileConfiguration config;
 
@@ -65,6 +67,11 @@ public final class GithubTickets extends JavaPlugin {
             return;
         }
 
+        // Initialize ticket notifier and register event listener
+        TicketNotifier.setPlugin(this);
+        TicketNotifier.setConfig(config);
+        Bukkit.getServer().getPluginManager().registerEvents(ticketNotifier, this);
+
         // Initialize and register commands
         TicketCommandExecutor ticketCommandExecutor = new TicketCommandExecutor(this, minWordCount);
         this.getCommand("ticket").setExecutor(ticketCommandExecutor);
@@ -85,6 +92,11 @@ public final class GithubTickets extends JavaPlugin {
 
         defaultConfig.set("serverName", "");
         defaultConfig.set("ticketMinWordCount", 2);
+
+        ConfigurationSection notify = defaultConfig.createSection(("notify"));
+        ConfigurationSection notifyOnLogin = notify.createSection("onLogin");
+        notifyOnLogin.set("staff", true);
+        notifyOnLogin.set("player", true);
 
         ConfigurationSection github = defaultConfig.createSection("github");
         ConfigurationSection githubAuth = github.createSection("auth");

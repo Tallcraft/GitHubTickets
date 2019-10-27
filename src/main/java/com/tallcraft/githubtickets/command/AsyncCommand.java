@@ -34,6 +34,7 @@ abstract class AsyncCommand extends BukkitRunnable {
      *
      * @param task
      */
+    // TODO: use Util.run instead
     protected void runSync(Runnable task) {
         new BukkitRunnable() {
             @Override
