@@ -1,14 +1,11 @@
 package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.GithubTickets;
-import com.tallcraft.githubtickets.ticket.TicketController;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 public class TicketCommandExecutor implements CommandExecutor {
-
-    private static final TicketController ticketController = TicketController.getInstance();
 
     private GithubTickets plugin;
 
@@ -80,7 +77,8 @@ public class TicketCommandExecutor implements CommandExecutor {
                     cmd = new CreateCmd(minWordCount);
                     break;
                 case "reply":
-                    if (!hasPerm(sender, "reply")) return noPerm(sender, command);
+                    if (!hasPerm(sender, "reply.self") && !hasPerm(sender, "reply.all"))
+                        return noPerm(sender, command);
                     cmd = new ReplyCmd(minWordCount);
                     break;
                 case "list":
@@ -93,7 +91,8 @@ public class TicketCommandExecutor implements CommandExecutor {
                     cmd = new StatusChangeCmd(false);
                     break;
                 case "reopen":
-                    if (!hasPerm(sender, "reopen.self") && !hasPerm(sender, "reopen.all"))
+                    if (!hasPerm(sender, "reopen.self")
+                            && !hasPerm(sender, "reopen.all"))
                         return noPerm(sender, command);
                     cmd = new StatusChangeCmd(true);
                     break;
