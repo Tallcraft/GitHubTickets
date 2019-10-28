@@ -103,7 +103,6 @@ public final class GithubTickets extends JavaPlugin implements Listener {
 
         ConfigurationSection notifyOnCreate = notify.createSection("onCreate");
         notifyOnCreate.set("staff", true);
-        notifyOnCreate.set("player", true);
 
         ConfigurationSection notifyOnStatusChange = notify.createSection("onStatusChange");
         notifyOnStatusChange.set("staff", true);
