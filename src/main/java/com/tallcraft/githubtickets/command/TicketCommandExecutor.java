@@ -1,6 +1,7 @@
 package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.GithubTickets;
+import com.tallcraft.githubtickets.Util;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,16 +17,6 @@ public class TicketCommandExecutor implements CommandExecutor {
         this.minWordCount = minWordCount;
     }
 
-    /**
-     * Test if user has permission with githubtickets prefix
-     *
-     * @param sender Sender to test permission for
-     * @param perm   Permission suffix to test
-     * @return true if sender has permission, false otherwise
-     */
-    boolean hasPerm(CommandSender sender, String perm) {
-        return sender.hasPermission("githubtickets." + perm);
-    }
 
     /**
      * Send no permission message to sender
@@ -64,35 +55,35 @@ public class TicketCommandExecutor implements CommandExecutor {
         } else {
             switch (args[0].toLowerCase()) {
                 case "show":
-                    if (!hasPerm(sender, "show.self") && !hasPerm(sender, "show.all"))
+                    if (!Util.hasPerm(sender, "show.self") && !Util.hasPerm(sender, "show.all"))
                         return noPerm(sender, command);
                     cmd = new ShowCmd();
                     break;
                 case "tp":
-                    if (!hasPerm(sender, "tp")) return noPerm(sender, command);
+                    if (!Util.hasPerm(sender, "tp")) return noPerm(sender, command);
                     cmd = new TeleportCmd();
                     break;
                 case "create":
-                    if (!hasPerm(sender, "create")) return noPerm(sender, command);
+                    if (!Util.hasPerm(sender, "create")) return noPerm(sender, command);
                     cmd = new CreateCmd(minWordCount);
                     break;
                 case "reply":
-                    if (!hasPerm(sender, "reply.self") && !hasPerm(sender, "reply.all"))
+                    if (!Util.hasPerm(sender, "reply.self") && !Util.hasPerm(sender, "reply.all"))
                         return noPerm(sender, command);
                     cmd = new ReplyCmd(minWordCount);
                     break;
                 case "list":
-                    if (!hasPerm(sender, "list")) return noPerm(sender, command);
+                    if (!Util.hasPerm(sender, "list")) return noPerm(sender, command);
                     cmd = new ListCmd();
                     break;
                 case "close":
-                    if (!hasPerm(sender, "close.self") && !hasPerm(sender, "close.all"))
+                    if (!Util.hasPerm(sender, "close.self") && !Util.hasPerm(sender, "close.all"))
                         return noPerm(sender, command);
                     cmd = new StatusChangeCmd(false);
                     break;
                 case "reopen":
-                    if (!hasPerm(sender, "reopen.self")
-                            && !hasPerm(sender, "reopen.all"))
+                    if (!Util.hasPerm(sender, "reopen.self")
+                            && !Util.hasPerm(sender, "reopen.all"))
                         return noPerm(sender, command);
                     cmd = new StatusChangeCmd(true);
                     break;

@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.ticket;
 
+import com.tallcraft.githubtickets.TicketNotifier;
 import com.tallcraft.githubtickets.github.GitHubController;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -13,6 +14,8 @@ import java.util.stream.Stream;
  * Interfaces between Bukkit plugin side and GitHub
  */
 public class TicketController {
+    private static final TicketNotifier ticketNotifier = TicketNotifier.getInstance();
+
     private static final GitHubController githubController = GitHubController.getInstance();
     private static TicketController ourInstance = new TicketController();
 
@@ -41,7 +44,9 @@ public class TicketController {
      * @return Ticket ID
      */
     private int createTicket(Ticket ticket) throws IOException {
-        return githubController.createTicket(ticket);
+        int ticketId = githubController.createTicket(ticket);
+        ticketNotifier.onNewTicket(ticket);
+        return ticketId;
     }
 
     /**
@@ -80,7 +85,11 @@ public class TicketController {
 
     public Ticket replyTicket(int id, Player player, String message) throws IOException {
         TicketComment comment = new TicketComment(null, player.getUniqueId(), player.getDisplayName(), message);
-        return githubController.addTicketComment(id, comment);
+        Ticket ticket = githubController.addTicketComment(id, comment);
+        if (ticket != null) {
+            ticketNotifier.onTicketComment(ticket);
+        }
+        return ticket;
     }
 
     /**
@@ -111,7 +120,11 @@ public class TicketController {
      * @return ticket object modified, or null if not found
      */
     public Ticket changeTicketStatus(int id, boolean open) throws IOException {
-        return githubController.changeTicketStatus(id, open);
+        Ticket ticket = githubController.changeTicketStatus(id, open);
+        if (ticket != null) {
+            ticketNotifier.onTicketStatusChange(ticket);
+        }
+        return ticket;
     }
 
 

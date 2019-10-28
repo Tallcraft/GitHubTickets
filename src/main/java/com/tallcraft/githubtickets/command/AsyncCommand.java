@@ -59,17 +59,17 @@ abstract class AsyncCommand extends BukkitRunnable {
     }
 
     protected boolean hasPermSync(String perm) {
-        return executor.hasPerm(sender, perm);
+        return Util.hasPerm(sender, perm);
     }
 
     protected boolean hasTicketPermissionSync(String basePermission, CommandSender sender, Ticket ticket) {
         return
                 // Players with all permission
-                executor.hasPerm(sender, basePermission + ".all")
+                Util.hasPerm(sender, basePermission + ".all")
                         // Console
                         || !(sender instanceof Player)
                         // Players with matching id and self permission
-                        || (executor.hasPerm(sender, basePermission + ".self")
+                        || (Util.hasPerm(sender, basePermission + ".self")
                         && ((Player) sender).getUniqueId().equals(ticket.getPlayerUUID()));
     }
 }

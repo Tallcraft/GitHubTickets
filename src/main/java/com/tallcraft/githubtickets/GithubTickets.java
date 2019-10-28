@@ -95,9 +95,22 @@ public final class GithubTickets extends JavaPlugin implements Listener {
         defaultConfig.set("ticketMinWordCount", 2);
 
         ConfigurationSection notify = defaultConfig.createSection(("notify"));
+
         ConfigurationSection notifyOnLogin = notify.createSection("onLogin");
         notifyOnLogin.set("staff", true);
         notifyOnLogin.set("player", true);
+
+        ConfigurationSection notifyOnCreate = notify.createSection("onCreate");
+        notifyOnCreate.set("staff", true);
+        notifyOnCreate.set("player", true);
+
+        ConfigurationSection notifyOnStatusChange = notify.createSection("onStatusChange");
+        notifyOnStatusChange.set("staff", true);
+        notifyOnStatusChange.set("player", true);
+
+        ConfigurationSection notifyOnComment = notify.createSection("onComment");
+        notifyOnComment.set("staff", true);
+        notifyOnComment.set("player", true);
 
         ConfigurationSection github = defaultConfig.createSection("github");
         ConfigurationSection githubAuth = github.createSection("auth");

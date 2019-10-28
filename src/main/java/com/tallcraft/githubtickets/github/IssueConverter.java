@@ -3,7 +3,10 @@ package com.tallcraft.githubtickets.github;
 import com.tallcraft.githubtickets.ticket.Location;
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketComment;
-import org.kohsuke.github.*;
+import org.kohsuke.github.GHIssue;
+import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHIssueState;
+import org.kohsuke.github.GHRepository;
 
 import java.io.IOException;
 import java.util.*;
@@ -15,9 +18,10 @@ import java.util.stream.Collectors;
  * Converts between Issues and Tickets by generating Strings and parsing from Strings
  */
 class IssueConverter {
+    private static IssueConverter ourInstance = new IssueConverter();
+
     // Max github issue title length
     private static final int maxTitleLength = 50;
-    private static IssueConverter ourInstance = new IssueConverter();
     private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*)", Pattern.DOTALL);
 
     private IssueConverter() {

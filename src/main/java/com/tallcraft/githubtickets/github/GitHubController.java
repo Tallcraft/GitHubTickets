@@ -14,6 +14,7 @@ import java.util.List;
  */
 public class GitHubController {
     private static GitHubController ourInstance = new GitHubController();
+
     private static IssueConverter issueConverter = IssueConverter.getInstance();
 
 
@@ -133,7 +134,10 @@ public class GitHubController {
         // Change status of github issue and get updated issue object
         changeTicketStatus(issue, open);
         // Convert issue object to ticket and return
-        return issueConverter.issueToTicket(issue);
+        Ticket ticket = issueConverter.issueToTicket(issue);
+        // Update ticket open status to reflect the change we just applied on GitHub
+        ticket.setOpen(open);
+        return ticket;
     }
 
 
