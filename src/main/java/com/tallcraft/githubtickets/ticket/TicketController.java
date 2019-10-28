@@ -87,29 +87,9 @@ public class TicketController {
         TicketComment comment = new TicketComment(null, player.getUniqueId(), player.getDisplayName(), message);
         Ticket ticket = githubController.addTicketComment(id, comment);
         if (ticket != null) {
-            ticketNotifier.onTicketComment(ticket);
+            ticketNotifier.onTicketComment(ticket, comment);
         }
         return ticket;
-    }
-
-    /**
-     * Open Ticket
-     *
-     * @param id Ticket ID
-     * @return ticket object modified, or null if not found
-     */
-    public Ticket openTicket(int id) throws IOException {
-        return changeTicketStatus(id, true);
-    }
-
-    /**
-     * Close Ticket
-     *
-     * @param id Ticket ID
-     * @return ticket object modified, or null if not found
-     */
-    public Ticket closeTicket(int id) throws IOException {
-        return changeTicketStatus(id, false);
     }
 
     /**
@@ -117,12 +97,13 @@ public class TicketController {
      *
      * @param id   Ticket ID
      * @param open true = open, false = closed
+     * @param actor UUID of player who changed the status, can be null if actor is not a player.
      * @return ticket object modified, or null if not found
      */
-    public Ticket changeTicketStatus(int id, boolean open) throws IOException {
+    public Ticket changeTicketStatus(int id, boolean open, UUID actor) throws IOException {
         Ticket ticket = githubController.changeTicketStatus(id, open);
         if (ticket != null) {
-            ticketNotifier.onTicketStatusChange(ticket);
+            ticketNotifier.onTicketStatusChange(ticket, actor);
         }
         return ticket;
     }

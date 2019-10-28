@@ -69,6 +69,7 @@ public final class GithubTickets extends JavaPlugin implements Listener {
         }
 
         // Initialize ticket notifier and register event listener
+        TicketNotifier.setTicketController(ticketController);
         TicketNotifier.setPlugin(this);
         TicketNotifier.setConfig(config);
         Bukkit.getServer().getPluginManager().registerEvents(ticketNotifier, this);

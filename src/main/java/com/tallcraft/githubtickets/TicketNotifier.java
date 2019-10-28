@@ -1,6 +1,7 @@
 package com.tallcraft.githubtickets;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
+import com.tallcraft.githubtickets.ticket.TicketComment;
 import com.tallcraft.githubtickets.ticket.TicketController;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -22,12 +23,16 @@ import java.util.stream.Collectors;
 public class TicketNotifier implements Listener {
     private static TicketNotifier ourInstance = new TicketNotifier();
 
-    private static final TicketController ticketController = TicketController.getInstance();
+    private static TicketController ticketController;
     private static GithubTickets plugin;
     private static FileConfiguration config;
 
     public static TicketNotifier getInstance() {
         return ourInstance;
+    }
+
+    static void setTicketController(TicketController ticketController) {
+        TicketNotifier.ticketController = ticketController;
     }
 
     static void setConfig(FileConfiguration config) {
@@ -47,19 +52,26 @@ public class TicketNotifier implements Listener {
                         new ComponentBuilder(hoverMsg).create()));
     }
 
-    private List<Player> getPlayersToNotify(boolean notifyStaff, boolean notifyAuthor, UUID authorUUID) {
+    private List<Player> getPlayersToNotify(boolean notifyStaff, boolean notifyAuthor,
+                                            UUID authorUUID, UUID excludeUUID) {
         if (!notifyStaff && (!notifyAuthor || authorUUID == null)) {
             return null;
         }
         return Bukkit.getServer().getOnlinePlayers().stream()
-                .filter(player ->
-                        (notifyStaff && Util.hasPerm(player, "notify.all"))
-                                || notifyAuthor && authorUUID != null && authorUUID.equals(player.getUniqueId()))
+                .filter(player -> {
+                    if (excludeUUID != null && excludeUUID.equals(player.getUniqueId())) {
+                        return false;
+                    }
+                    if (notifyStaff && Util.hasPerm(player, "notify.all")) {
+                        return true;
+                    }
+                    return notifyAuthor && authorUUID != null && authorUUID.equals(player.getUniqueId());
+                })
                 .collect(Collectors.toList());
     }
 
-    private void notifyPlayers(boolean notifyStaff, boolean notifyAuthor, UUID authorUUID, BaseComponent[] message) {
-        List<Player> players = getPlayersToNotify(notifyStaff, notifyAuthor, authorUUID);
+    private void notifyPlayers(boolean notifyStaff, boolean notifyAuthor, UUID authorUUID, UUID excludeUUID, BaseComponent[] message) {
+        List<Player> players = getPlayersToNotify(notifyStaff, notifyAuthor, authorUUID, excludeUUID);
         if (players == null || players.size() == 0) {
             return;
         }
@@ -69,20 +81,20 @@ public class TicketNotifier implements Listener {
     }
 
     public void onNewTicket(Ticket ticket) {
-        if (plugin == null || config == null) {
-            throw new IllegalStateException("Plugin config must be set");
+        if (ticketController == null || plugin == null || config == null) {
+            throw new IllegalStateException("Not initialized");
         }
         if (ticket == null) {
             throw new IllegalArgumentException("Ticket event without ticket!");
         }
         ComponentBuilder msg = createTicketMsg("New Ticket #" + ticket.getId(),
                 "Click to show ticket", "/ticket show " + ticket.getId());
-        notifyPlayers(config.getBoolean("notify.onCreate.staff"), false, null, msg.create());
+        notifyPlayers(config.getBoolean("notify.onCreate.staff"), false, null, null, msg.create());
     }
 
-    public void onTicketStatusChange(Ticket ticket) {
-        if (plugin == null || config == null) {
-            throw new IllegalStateException("Plugin config must be set");
+    public void onTicketStatusChange(Ticket ticket, UUID actor) {
+        if (ticketController == null || plugin == null || config == null) {
+            throw new IllegalStateException("Not initialized");
         }
         if (ticket == null) {
             throw new IllegalArgumentException("Ticket event without ticket!");
@@ -93,12 +105,12 @@ public class TicketNotifier implements Listener {
         notifyPlayers(
                 config.getBoolean("notify.onStatusChange.staff"),
                 config.getBoolean("notify.onStatusChange.player"),
-                ticket.getPlayerUUID(), msg.create());
+                ticket.getPlayerUUID(), actor, msg.create());
     }
 
-    public void onTicketComment(Ticket ticket) {
-        if (plugin == null || config == null) {
-            throw new IllegalStateException("Plugin config must be set");
+    public void onTicketComment(Ticket ticket, TicketComment comment) {
+        if (ticketController == null || plugin == null || config == null) {
+            throw new IllegalStateException("Not initialized");
         }
         if (ticket == null) {
             throw new IllegalArgumentException("Ticket event without ticket!");
@@ -109,13 +121,13 @@ public class TicketNotifier implements Listener {
         notifyPlayers(
                 config.getBoolean("notify.onComment.staff"),
                 config.getBoolean("notify.onComment.player"),
-                ticket.getPlayerUUID(), msg.create());
+                ticket.getPlayerUUID(), comment.getPlayerUUID(), msg.create());
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (plugin == null || config == null) {
-            throw new IllegalStateException("Plugin config must be set");
+        if (ticketController == null || plugin == null || config == null) {
+            throw new IllegalStateException("Not initialized");
         }
         boolean cfgNotifyStaff = config.getBoolean("notify.onLogin.staff");
         boolean cfgNotifyPlayer = config.getBoolean("notify.onLogin.player");

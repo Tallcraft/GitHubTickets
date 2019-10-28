@@ -2,7 +2,6 @@ package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.Util;
 import com.tallcraft.githubtickets.ticket.Ticket;
-import com.tallcraft.githubtickets.ticket.TicketComment;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -60,8 +59,10 @@ public class ReplyCmd extends AsyncCommand {
 
             reply("Ticket reply submitted ...");
 
+            Player player = (Player) sender;
+
             // Trigger action
-            ticket = ticketController.replyTicket(id, (Player) sender, message);
+            ticket = ticketController.replyTicket(id, player, message);
             if (ticket == null) {
                 reply("Ticket #" + id + " not found.");
                 return;

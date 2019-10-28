@@ -1,6 +1,7 @@
 package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
+import org.bukkit.entity.Player;
 
 import java.io.IOException;
 
@@ -45,7 +46,8 @@ public class StatusChangeCmd extends AsyncCommand {
 
             reply("Ticket change submitted...");
 
-            ticket = ticketController.changeTicketStatus(id, newStatus);
+            Player player = (Player) sender;
+            ticket = ticketController.changeTicketStatus(id, newStatus, player.getUniqueId());
             if (ticket == null) {
                 reply("Ticket not found.");
                 return;
