@@ -146,7 +146,7 @@ class IssueConverter {
      * @param issue Issue Object to convert
      * @return Ticket object from issue data
      */
-    Ticket issueToTicket(GHIssue issue) {
+    Ticket issueToTicket(GHIssue issue, boolean includeComments) {
         if (issue == null) {
             return null;
         }
@@ -178,18 +178,21 @@ class IssueConverter {
             return null;
         }
 
-        // Issue comments => Ticket comments
-        try {
-            List<GHIssueComment> comments = issue.getComments();
-            if (comments != null) {
-                // Convert comments
-                ticket.setComments(comments
-                        .stream()
-                        .map(this::issueCommentToTicketComment)
-                        .collect(Collectors.toCollection(LinkedList::new)));
+        if (includeComments) {
+            // Issue comments => Ticket comments
+            try {
+                // TODO: issue.getComments() needs an api call, it should probably be moved somewhere else
+                List<GHIssueComment> comments = issue.getComments();
+                if (comments != null) {
+                    // Convert comments
+                    ticket.setComments(comments
+                            .stream()
+                            .map(this::issueCommentToTicketComment)
+                            .collect(Collectors.toCollection(LinkedList::new)));
+                }
+            } catch (IOException ex) {
+                // Error while parsing ticket comments
             }
-        } catch (IOException ex) {
-            // Error while parsing ticket comments
         }
 
         return ticket;
@@ -201,10 +204,10 @@ class IssueConverter {
      * @param issues Issue objects to convert
      * @return Collection of tickets
      */
-    List<Ticket> issueToTicket(Collection<GHIssue> issues) {
+    List<Ticket> issueToTicket(Collection<GHIssue> issues, boolean includeComments) {
         List<Ticket> tickets = new LinkedList<>();
         for (GHIssue issue : issues) {
-            Ticket ticket = issueToTicket(issue);
+            Ticket ticket = issueToTicket(issue, includeComments);
             if (ticket != null) tickets.add(ticket);
         }
         return tickets;

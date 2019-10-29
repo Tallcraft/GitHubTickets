@@ -156,7 +156,7 @@ public class TicketNotifier implements Listener {
             List<Ticket> tickets;
             try {
                 tickets = ticketController.getTickets(false, true, true,
-                        finalFilterUUID);
+                        finalFilterUUID, false);
             } catch (IOException e) {
                 e.printStackTrace();
                 // Don't show anything to the player, ticket fetch failed.

@@ -134,7 +134,7 @@ public class GitHubController {
         // Change status of github issue and get updated issue object
         changeTicketStatus(issue, open);
         // Convert issue object to ticket and return
-        Ticket ticket = issueConverter.issueToTicket(issue);
+        Ticket ticket = issueConverter.issueToTicket(issue, false);
         // Update ticket open status to reflect the change we just applied on GitHub
         ticket.setOpen(open);
         return ticket;
@@ -184,7 +184,7 @@ public class GitHubController {
         // we'd have to make another API call, which is costly.
         // Mock the timestamp and return the ticket.
         comment.setTimestamp(new Date());
-        return issueConverter.issueToTicket(issue);
+        return issueConverter.issueToTicket(issue, true);
     }
 
 
@@ -197,7 +197,7 @@ public class GitHubController {
      */
     public Ticket getTicket(int id) throws IOException {
         try {
-            return issueConverter.issueToTicket(repository.getIssue(id));
+            return issueConverter.issueToTicket(repository.getIssue(id), true);
         } catch (GHFileNotFoundException ex) {
             return null;
         }
@@ -228,9 +228,9 @@ public class GitHubController {
      * @return list of tickets with desired state
      * @throws IOException API error
      */
-    public List<Ticket> getTickets(boolean filterState) throws IOException {
+    public List<Ticket> getTickets(boolean filterState, boolean includeComments) throws IOException {
         GHIssueState state = filterState ? GHIssueState.OPEN : GHIssueState.CLOSED;
-        return issueConverter.issueToTicket(repository.getIssues(state));
+        return issueConverter.issueToTicket(repository.getIssues(state), includeComments);
     }
 
     /**
@@ -239,7 +239,7 @@ public class GitHubController {
      * @return list of all tickets in repo
      * @throws IOException API error
      */
-    public List<Ticket> getTickets() throws IOException {
-        return issueConverter.issueToTicket(repository.getIssues(GHIssueState.ALL));
+    public List<Ticket> getTickets(boolean includeComments) throws IOException {
+        return issueConverter.issueToTicket(repository.getIssues(GHIssueState.ALL), includeComments);
     }
 }

@@ -115,21 +115,21 @@ public class TicketController {
     }
 
     /**
-     * Get a list of open tickets sorted by id
+     * Get a list of open tickets sorted by id *without* comments
      *
      * @return List of open tickets
      */
     public List<Ticket> getOpenTickets() throws IOException {
-        return getTickets(true, true, true, null);
+        return getTickets(true, true, true, null, false);
     }
 
     public List<Ticket> getTickets(boolean sorted, boolean filterStatus,
-                                   boolean status, UUID filterPlayerUUID) throws IOException {
+                                   boolean status, UUID filterPlayerUUID, boolean includeComments) throws IOException {
         List<Ticket> tickets;
         if (filterStatus) {
-            tickets = githubController.getTickets(status);
+            tickets = githubController.getTickets(status, includeComments);
         } else {
-            tickets = githubController.getTickets();
+            tickets = githubController.getTickets(includeComments);
         }
         if (!sorted && filterPlayerUUID == null) {
             return tickets;

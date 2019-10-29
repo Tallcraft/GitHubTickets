@@ -136,11 +136,6 @@ public class Ticket {
         ticketHoverText.append("Ticket #" + id + "\n").color(chatKeyColor)
                 .append(playerName, f).bold(true).append("\n")
                 .append(body, f);
-        int commentCount = comments.size();
-        if (commentCount > 0) {
-            ticketHoverText.append("\n\nComments: ", f).color(chatKeyColor)
-                    .append(Integer.toString(commentCount), f);
-        }
         ticketHoverText.append("\n\nClick to show details", f).color(ChatColor.DARK_PURPLE);
         return new HoverEvent(HoverEvent.Action.SHOW_TEXT, ticketHoverText.create());
     }
@@ -321,7 +316,7 @@ public class Ticket {
                             "/ticket reply " + id + " "))
                     .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                             new ComponentBuilder("Click to reply").create()));
-            if (comments.isEmpty()) {
+            if (comments == null || comments.isEmpty()) {
                 builder.append("None", f).color(chatKeyColor);
             } else {
                 comments.forEach(comment -> {
