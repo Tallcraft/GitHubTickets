@@ -44,9 +44,9 @@ public class TicketController {
      * @return Ticket ID
      */
     private int createTicket(Ticket ticket) throws IOException {
-        int ticketId = githubController.createTicket(ticket);
+        ticket = githubController.createTicket(ticket);
         ticketNotifier.onNewTicket(ticket);
-        return ticketId;
+        return ticket.getId();
     }
 
     /**
