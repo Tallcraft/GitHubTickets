@@ -1,5 +1,6 @@
 package com.tallcraft.githubtickets.command;
 
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -54,10 +55,11 @@ public class CreateCmd extends AsyncCommand {
             e.printStackTrace();
             return;
         }
-        reply(new ComponentBuilder("Created ticket ")
-                .append("#" + ticketID)
+        reply(new ComponentBuilder("Created ticket #" + ticketID)
+                .bold(true)
+                .color(ChatColor.GOLD)
                 .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                        new ComponentBuilder("Show ticket").create()))
+                        new ComponentBuilder("Click to show ticket").create()))
                 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                         "/ticket show " + ticketID))
                 .create());
