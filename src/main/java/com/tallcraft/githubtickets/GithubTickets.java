@@ -26,16 +26,14 @@ public final class GithubTickets extends JavaPlugin implements Listener {
         // Initialize config with defaults
         config.initConfigStore(this);
 
-        // Read config values
+        // Read github specific config vars
         String user = config.store().getString("github.auth.username");
         String password = config.store().getString("github.auth.password");
         String oauth = config.store().getString("github.auth.oauth");
         String repositoryUser = config.store().getString("github.repository.user");
         String repositoryName = config.store().getString("github.repository.repoName");
-        int minWordCount = config.store().getInt("ticketMinWordCount");
 
         // Validate config options
-
         if (isUnset(oauth) && ((isUnset(user)) || isUnset(password)) || isUnset(repositoryUser) || isUnset(repositoryName)) {
             logger.info("Missing GitHub configuration. Please add it in config.yml. Disabling.");
             Bukkit.getPluginManager().disablePlugin(this);
@@ -71,6 +69,7 @@ public final class GithubTickets extends JavaPlugin implements Listener {
         Bukkit.getServer().getPluginManager().registerEvents(ticketNotifier, this);
 
         // Initialize and register commands
+        int minWordCount = config.store().getInt("ticketMinWordCount");
         TicketCommandExecutor ticketCommandExecutor = new TicketCommandExecutor(this, minWordCount);
         this.getCommand("ticket").setExecutor(ticketCommandExecutor);
     }
