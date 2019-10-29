@@ -178,7 +178,7 @@ public class TicketNotifier implements Listener {
                             + (ticketCount == 1 ? "" : "s")
                             + ".";
                 } else {
-                    message = "You have " + ticketCount + " open tickets";
+                    message = "You have " + ticketCount + " open ticket" + (ticketCount == 1 ? "" : "s");
                 }
 
                 ComponentBuilder builder = createTicketMsg(message,
