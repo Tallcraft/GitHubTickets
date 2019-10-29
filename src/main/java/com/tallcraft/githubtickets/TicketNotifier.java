@@ -116,7 +116,7 @@ public class TicketNotifier implements Listener {
             throw new IllegalArgumentException("Ticket event without ticket!");
         }
         ComponentBuilder msg = createTicketMsg(
-                "New comment for Ticket  #" + ticket.getId(),
+                "New comment for Ticket #" + ticket.getId(),
                 "Click to show ticket", "/ticket show " + ticket.getId());
         notifyPlayers(
                 config.getBoolean("notify.onComment.staff"),
