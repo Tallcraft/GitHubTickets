@@ -31,7 +31,6 @@ public class TicketCommandExecutor implements CommandExecutor {
     }
 
 
-
     /**
      * Executes the given command, returning its success.
      * <br>

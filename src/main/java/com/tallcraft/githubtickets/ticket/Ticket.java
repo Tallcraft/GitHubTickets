@@ -321,7 +321,7 @@ public class Ticket {
                             "/ticket reply " + id + " "))
                     .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                             new ComponentBuilder("Click to reply").create()));
-            if(comments.isEmpty()) {
+            if (comments.isEmpty()) {
                 builder.append("None", f).color(chatKeyColor);
             } else {
                 comments.forEach(comment -> {

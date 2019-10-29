@@ -95,8 +95,8 @@ public class TicketController {
     /**
      * Change ticket status
      *
-     * @param id   Ticket ID
-     * @param open true = open, false = closed
+     * @param id    Ticket ID
+     * @param open  true = open, false = closed
      * @param actor UUID of player who changed the status, can be null if actor is not a player.
      * @return ticket object modified, or null if not found
      */
@@ -125,19 +125,19 @@ public class TicketController {
     public List<Ticket> getTickets(boolean sorted, boolean filterStatus,
                                    boolean status, UUID filterPlayerUUID) throws IOException {
         List<Ticket> tickets;
-        if(filterStatus) {
+        if (filterStatus) {
             tickets = githubController.getTickets(status);
         } else {
             tickets = githubController.getTickets();
         }
-        if(!sorted && filterPlayerUUID == null) {
+        if (!sorted && filterPlayerUUID == null) {
             return tickets;
         }
         Stream<Ticket> ticketStream = tickets.stream();
-        if(sorted) {
+        if (sorted) {
             ticketStream = ticketStream.sorted(Comparator.comparing(Ticket::getId).reversed());
         }
-        if(filterPlayerUUID != null) {
+        if (filterPlayerUUID != null) {
             ticketStream = ticketStream.filter((ticket) -> ticket.getPlayerUUID()
                     .equals(filterPlayerUUID));
         }

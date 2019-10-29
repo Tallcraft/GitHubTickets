@@ -69,7 +69,7 @@ public class ReplyCmd extends AsyncCommand {
             }
             Ticket finalTicket = ticket;
             Util.run(plugin, false, () -> {
-                if(hasTicketPermissionSync("show", sender, finalTicket)) {
+                if (hasTicketPermissionSync("show", sender, finalTicket)) {
                     replySync(finalTicket.toChat());
                 } else {
                     replySync("Added reply for ticket #" + id);

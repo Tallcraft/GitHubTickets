@@ -8,9 +8,9 @@ import java.util.Date;
 import java.util.UUID;
 
 public class TicketComment {
-    private Date timestamp;
     // Variable passed to append to reset formatting / events
     private static final ComponentBuilder.FormatRetention f = ComponentBuilder.FormatRetention.NONE;
+    private Date timestamp;
     private UUID playerUUID;
     private String displayName;
     private String body;

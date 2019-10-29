@@ -235,6 +235,7 @@ public class GitHubController {
 
     /**
      * Get a list of all tickets
+     *
      * @return list of all tickets in repo
      * @throws IOException API error
      */

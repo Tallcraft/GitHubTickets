@@ -18,10 +18,9 @@ import java.util.stream.Collectors;
  * Converts between Issues and Tickets by generating Strings and parsing from Strings
  */
 class IssueConverter {
-    private static IssueConverter ourInstance = new IssueConverter();
-
     // Max github issue title length
     private static final int maxTitleLength = 50;
+    private static IssueConverter ourInstance = new IssueConverter();
     private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*)", Pattern.DOTALL);
 
     private IssueConverter() {
@@ -35,7 +34,7 @@ class IssueConverter {
      * Get value from issue body
      *
      * @param body Body to extract value from
-     * @param key   Key of key-value pair
+     * @param key  Key of key-value pair
      * @return Extracted value
      */
     private static String getValue(String body, String key) {
@@ -69,10 +68,10 @@ class IssueConverter {
      * @return Issue object from ticket data
      */
     GHIssue ticketToIssue(GHRepository repository, Ticket ticket) throws IOException {
-        GHIssue issue =  repository.createIssue(getIssueTitle(ticket))
+        GHIssue issue = repository.createIssue(getIssueTitle(ticket))
                 .body(getIssueBody(ticket))
                 .label("Server: " + ticket.getServerName()).create();
-        if(issue == null) {
+        if (issue == null) {
             return null;
         }
 
@@ -139,7 +138,6 @@ class IssueConverter {
 
         return new TicketComment(createdAt, uuid, displayName, body);
     }
-
 
 
     /**
