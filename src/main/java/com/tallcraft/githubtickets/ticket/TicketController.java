@@ -85,7 +85,7 @@ public class TicketController {
     }
 
     public Ticket replyTicket(int id, Player player, String message) throws IOException {
-        TicketComment comment = new TicketComment(null, player.getUniqueId(), player.getDisplayName(), message);
+        TicketComment comment = new TicketComment(null, player.getUniqueId(), ChatColor.stripColor(player.getDisplayName()), message);
         Ticket ticket = githubController.addTicketComment(id, comment);
         if (ticket != null) {
             ticketNotifier.onTicketComment(ticket, comment);
