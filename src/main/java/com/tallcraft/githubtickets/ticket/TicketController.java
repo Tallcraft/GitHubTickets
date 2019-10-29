@@ -3,6 +3,7 @@ package com.tallcraft.githubtickets.ticket;
 import com.tallcraft.githubtickets.TicketNotifier;
 import com.tallcraft.githubtickets.github.GitHubController;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -79,7 +80,7 @@ public class TicketController {
     private int createTicket(Date timestamp, UUID playerUUID, String playerName, String serverName, String worldName, Location location, String body) throws IOException {
         // If server name is set in ticket controller overwrite server getter
         String serverNameOverride = this.serverName == null ? serverName : this.serverName;
-        Ticket ticket = new Ticket(timestamp, playerUUID, playerName, serverNameOverride, worldName, location, body);
+        Ticket ticket = new Ticket(timestamp, playerUUID, ChatColor.stripColor(playerName), serverNameOverride, worldName, location, body);
         return createTicket(ticket);
     }
 
