@@ -84,7 +84,7 @@ public class TicketNotifier implements Listener {
         }
         ComponentBuilder msg = createTicketMsg("New Ticket #" + ticket.getId(),
                 "Click to show ticket", "/ticket show " + ticket.getId());
-        notifyPlayers(config.store().getBoolean("notify.onCreate.staff"), false, null, null, msg.create());
+        notifyPlayers(config.store().getBoolean("notify.onCreate.staff"), false, null, ticket.getPlayerUUID(), msg.create());
     }
 
     public void onTicketStatusChange(Ticket ticket, UUID actor) {
