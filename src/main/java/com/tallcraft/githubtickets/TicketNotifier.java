@@ -9,7 +9,6 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,7 +24,7 @@ public class TicketNotifier implements Listener {
 
     private static TicketController ticketController;
     private static GithubTickets plugin;
-    private static FileConfiguration config;
+    private static Config config = Config.getInstance();
 
     public static TicketNotifier getInstance() {
         return ourInstance;
@@ -33,10 +32,6 @@ public class TicketNotifier implements Listener {
 
     static void setTicketController(TicketController ticketController) {
         TicketNotifier.ticketController = ticketController;
-    }
-
-    static void setConfig(FileConfiguration config) {
-        TicketNotifier.config = config;
     }
 
     public static void setPlugin(GithubTickets plugin) {
@@ -89,7 +84,7 @@ public class TicketNotifier implements Listener {
         }
         ComponentBuilder msg = createTicketMsg("New Ticket #" + ticket.getId(),
                 "Click to show ticket", "/ticket show " + ticket.getId());
-        notifyPlayers(config.getBoolean("notify.onCreate.staff"), false, null, null, msg.create());
+        notifyPlayers(config.store().getBoolean("notify.onCreate.staff"), false, null, null, msg.create());
     }
 
     public void onTicketStatusChange(Ticket ticket, UUID actor) {
@@ -103,8 +98,8 @@ public class TicketNotifier implements Listener {
                 "Ticket #" + ticket.getId() + " " + (ticket.isOpen() ? "opened" : "closed"),
                 "Click to show ticket", "/ticket show " + ticket.getId());
         notifyPlayers(
-                config.getBoolean("notify.onStatusChange.staff"),
-                config.getBoolean("notify.onStatusChange.player"),
+                config.store().getBoolean("notify.onStatusChange.staff"),
+                config.store().getBoolean("notify.onStatusChange.player"),
                 ticket.getPlayerUUID(), actor, msg.create());
     }
 
@@ -119,8 +114,8 @@ public class TicketNotifier implements Listener {
                 "New comment for Ticket #" + ticket.getId(),
                 "Click to show ticket", "/ticket show " + ticket.getId());
         notifyPlayers(
-                config.getBoolean("notify.onComment.staff"),
-                config.getBoolean("notify.onComment.player"),
+                config.store().getBoolean("notify.onComment.staff"),
+                config.store().getBoolean("notify.onComment.player"),
                 ticket.getPlayerUUID(), comment.getPlayerUUID(), msg.create());
     }
 
@@ -129,8 +124,8 @@ public class TicketNotifier implements Listener {
         if (ticketController == null || plugin == null || config == null) {
             throw new IllegalStateException("Not initialized");
         }
-        boolean cfgNotifyStaff = config.getBoolean("notify.onLogin.staff");
-        boolean cfgNotifyPlayer = config.getBoolean("notify.onLogin.player");
+        boolean cfgNotifyStaff = config.store().getBoolean("notify.onLogin.staff");
+        boolean cfgNotifyPlayer = config.store().getBoolean("notify.onLogin.player");
 
         if (!cfgNotifyStaff && !cfgNotifyPlayer) {
             // Notify not enabled
