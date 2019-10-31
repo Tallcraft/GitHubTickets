@@ -2,8 +2,12 @@ package com.tallcraft.githubtickets.github;
 
 import com.tallcraft.githubtickets.ticket.Ticket;
 import com.tallcraft.githubtickets.ticket.TicketComment;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 import org.kohsuke.github.*;
+import org.kohsuke.github.extras.okhttp3.OkHttpConnector;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -50,14 +54,21 @@ public class GitHubController {
             throw new IllegalArgumentException("'repositoryName' must not be empty");
         }
 
+        Cache cache = new Cache(new File("cache"), 10 * 1024 * 1024); // TODO: plugin dir
+        OkHttpClient httpClient = (new okhttp3.OkHttpClient.Builder()).cache(cache).build();
+        OkHttpConnector connector = new OkHttpConnector(httpClient);
+        GitHubBuilder builder = new GitHubBuilder().withConnector(connector);
+
         // Initialize GitHubController client
         if (oauth != null && !oauth.isEmpty()) {
-            client = GitHub.connectUsingOAuth(oauth);
+            builder = builder.withOAuthToken(oauth);
         } else if (user != null && password != null && !user.isEmpty() && !password.isEmpty()) {
-            client = GitHub.connectUsingPassword(user, password);
+            builder = builder.withPassword(user, password);
         } else {
             throw new IllegalArgumentException("No credentials set");
         }
+
+        client = builder.build();
 
         try {
             repository = client.getRepository(repositoryUser + "/" + repositoryName);
