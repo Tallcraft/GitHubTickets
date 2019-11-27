@@ -54,7 +54,7 @@ public class GitHubController {
             throw new IllegalArgumentException("'repositoryName' must not be empty");
         }
 
-        Cache cache = new Cache(new File("cache"), 10 * 1024 * 1024); // TODO: plugin dir
+        Cache cache = new Cache(new File("cache"), 10 * 1024 * 1024);
         OkHttpClient httpClient = (new okhttp3.OkHttpClient.Builder()).cache(cache).build();
         OkHttpConnector connector = new OkHttpConnector(httpClient);
         GitHubBuilder builder = new GitHubBuilder().withConnector(connector);

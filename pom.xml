@@ -6,7 +6,7 @@
 
     <groupId>com.tallcraft</groupId>
     <artifactId>GithubTickets</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <packaging>jar</packaging>
 
     <name>GitHubTickets</name>
@@ -14,6 +14,7 @@
     <description>Ticket system interfacing with GitHub</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <okhttp3.version>3.14.4</okhttp3.version>
     </properties>
 
     <build>
@@ -91,12 +92,12 @@
         <dependency>
             <groupId>org.kohsuke</groupId>
             <artifactId>github-api</artifactId>
-            <version>1.96-SNAPSHOT</version>
+            <version>1.101</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>3.14.4</version>
+            <version>${okhttp3.version}</version>
         </dependency>
     </dependencies>
 </project>
