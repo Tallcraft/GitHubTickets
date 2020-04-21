@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
  */
 class IssueConverter {
     // Max github issue title length
-    private static final int maxTitleLength = 50;
-    private static IssueConverter ourInstance = new IssueConverter();
-    private static Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*)", Pattern.DOTALL);
+    private static final int maxTitleLength = 100;
+    private static final IssueConverter ourInstance = new IssueConverter();
+    private static final Pattern ticketBodyPattern = Pattern.compile("\\n\\n(.*)", Pattern.DOTALL);
 
     private IssueConverter() {
     }
