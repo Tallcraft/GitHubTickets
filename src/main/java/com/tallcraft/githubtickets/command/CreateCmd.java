@@ -13,22 +13,29 @@ import java.util.stream.Collectors;
 
 public class CreateCmd extends AsyncCommand {
 
-    private int minWordCount;
+    private final int minWordCount;
 
     CreateCmd(int minWordCount) {
         this.minWordCount = minWordCount;
     }
 
     /**
-     * Test ticket body for requirements such as non empty and minimum amount of words
+     * Test ticket body for requirements such as non empty and minimum amount of words.
      *
      * @param body Ticket message
-     * @return true if requirements met, false otherwise
+     * @return null if validation succeeds or reason for validation failure.
      */
-    private boolean testBody(String body) {
-        if (body == null || body.isEmpty()) return false;
-        int wordCount = body.split(" ").length;
-        return wordCount >= minWordCount;
+    private String testBody(String body) {
+        if (body == null || body.isEmpty()) {
+            return "No message provided.";
+        }
+        int wordCount = body.split("\\s+").length;
+
+        if (wordCount < minWordCount) {
+            return "Message too short";
+        }
+
+        return null;
     }
 
     @Override
@@ -40,8 +47,9 @@ public class CreateCmd extends AsyncCommand {
         // Join args to form string for ticket message
         String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
 
-        if (!testBody(message)) {
-            reply("Invalid ticket message");
+        String validationError = testBody(message);
+        if (validationError != null) {
+            reply("Invalid ticket message: " + validationError);
             return;
         }
 
