@@ -3,6 +3,7 @@ package com.tallcraft.githubtickets;
 import com.tallcraft.githubtickets.command.TicketCommandExecutor;
 import com.tallcraft.githubtickets.github.GitHubController;
 import com.tallcraft.githubtickets.ticket.TicketController;
+import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -72,6 +73,8 @@ public final class GithubTickets extends JavaPlugin implements Listener {
         int minWordCount = config.store().getInt("ticketMinWordCount");
         TicketCommandExecutor ticketCommandExecutor = new TicketCommandExecutor(this, minWordCount);
         this.getCommand("ticket").setExecutor(ticketCommandExecutor);
+
+        PaperLib.suggestPaper(this);
     }
 
     @Override

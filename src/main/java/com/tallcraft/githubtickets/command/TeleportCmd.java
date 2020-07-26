@@ -2,6 +2,7 @@ package com.tallcraft.githubtickets.command;
 
 import com.tallcraft.githubtickets.Util;
 import com.tallcraft.githubtickets.ticket.Ticket;
+import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -64,6 +65,8 @@ public class TeleportCmd extends AsyncCommand {
                     ticket.getLocation().getZ());
 
             replySync("Teleporting to ticket #" + ticket.getId());
+
+            PaperLib.teleportAsync(player, location);
             player.teleport(location);
         });
     }
