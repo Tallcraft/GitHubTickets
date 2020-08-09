@@ -67,7 +67,6 @@ public class TeleportCmd extends AsyncCommand {
             replySync("Teleporting to ticket #" + ticket.getId());
 
             PaperLib.teleportAsync(player, location);
-            player.teleport(location);
         });
     }
 }
